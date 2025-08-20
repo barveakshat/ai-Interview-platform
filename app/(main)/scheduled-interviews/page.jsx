@@ -1,0 +1,100 @@
+// app/(main)/schedule-interview/page.jsx
+"use client";
+import { useUser } from "@/app/provider";
+import { useState } from "react";
+import { supabase } from "@/services/supabaseClient";
+import React, { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { FaVideo } from "react-icons/fa6";
+import InterviewCard from "../dashboard/_components/InterviewCard";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import Link from "next/link";
+import { Plus } from "lucide-react";
+
+function ScheduledInterviews() {
+  const [interviewList, setInterviewList] = useState([]);
+  const { user } = useUser();
+
+  useEffect(() => {
+    user && GetInterviewList();
+  }, [user]);
+
+  const GetInterviewList = async () => {
+    try {
+      let { data: interviews, error } = await supabase
+        .from("interviews")
+        .select(
+          `
+          id, 
+          jobPosition, 
+          duration, 
+          interview_id, 
+          created_at, 
+          userEmail,
+          "interview-feedback"(userEmail)
+        `
+        )
+        .eq("userEmail", user?.email)
+        .order("id", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching interviews:", error);
+        toast.error("Failed to fetch interviews.");
+        return;
+      }
+      setInterviewList(interviews || []);
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      toast.error("An unexpected error occurred.");
+    }
+  };
+
+  const handleDelete = (id) => {
+    setInterviewList((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  return (
+    <div className="p-5">
+      <h2 className="text-xl font-bold">
+        Interview list with candidate feedback
+      </h2>
+      {interviewList?.length == 0 && (
+        <div className="flex flex-col p-5 space-y-3 items-center">
+          <div className="w-12 h-12 bg-green-100 rounded-lg inline-flex items-center justify-center">
+            <FaVideo className="text-green-700 w-6 h-6" />
+          </div>
+          <h2>You don't have any interviews created</h2>
+          <Link href={"/dashboard/create-interview"}>
+            <Button>
+              <Plus />
+              Create New Interview
+            </Button>
+          </Link>
+        </div>
+      )}
+      {interviewList && interviewList.length > 0 && (
+        <div className="grid grid-cols-2 xl:grid-cols-3 gap-5 p-5">
+          <AnimatePresence>
+            {interviewList.map((interview) => (
+              <motion.div
+                key={interview.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}>
+                <InterviewCard
+                  interview={interview}
+                  viewDetail={true}
+                  onDelete={handleDelete}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default ScheduledInterviews;
