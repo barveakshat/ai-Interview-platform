@@ -68,7 +68,7 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center space-x-2">
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-emerald-400">
-                Guruji
+                PrepTrack
               </span>
             </Link>
 
@@ -285,7 +285,7 @@ export default function Home() {
               </div>
 
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                See Guruji in Action - Right Now!
+                See PrepTrack in Action - Right Now!
               </h2>
               <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
                 Don't just read about it - experience our AI-powered interview
@@ -491,7 +491,7 @@ export default function Home() {
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                How Guruji Works
+                How PrepTrack Works
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 Generate professional interview questions in four simple steps
@@ -597,7 +597,7 @@ export default function Home() {
       <footer className="bg-white border-t border-gray-100 py-12">
         <div className="container mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between">
           <p className="text-gray-500 text-sm">
-            © {currentYear} Guruji. All rights reserved.
+            © {currentYear} PrepTrack. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link

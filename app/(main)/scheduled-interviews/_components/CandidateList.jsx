@@ -11,28 +11,42 @@ function CandidateList({ candidateList }) {
     return "text-red-500";
   };
 
+  // Normalize input to an array to avoid runtime errors when relation returns a single object or null
+  const list = Array.isArray(candidateList)
+    ? candidateList
+    : candidateList
+    ? [candidateList]
+    : [];
+
   return (
     <div>
-      <h2 className="my-5 font-semibold">
-        Candidates ({candidateList?.length})
-      </h2>
+      <h2 className="my-5 font-semibold">Candidates ({list.length})</h2>
       <div className="flex flex-col gap-3">
-        {candidateList?.map((candidate, index) => {
+        {list.map((candidate, index) => {
           // Fallback score if not present
-          const score = candidate?.feedback?.feedback?.rating?.overall ?? 0;
+          const score =
+            candidate?.feedback?.feedback?.rating?.overall ??
+            candidate?.feedback?.rating?.overall ??
+            0;
           const colorClass = getColorForScore(score);
+          const displayInitial = (
+            candidate?.userName || candidate?.userEmail || "?"
+          )
+            .toString()
+            .charAt(0)
+            .toUpperCase();
 
           return (
             <div
               key={index}
               className="p-5 flex items-center bg-white rounded-lg shadow-sm border border-gray-200">
               <h2 className="bg-primary font-bold text-white rounded-full p-3 px-4.5 mr-3">
-                {candidate.userName[0]}
+                {displayInitial}
               </h2>
 
               <div className="flex justify-between items-center w-full">
                 <div>
-                  <h2 className="font-bold">{candidate.userName}</h2>
+                  <h2 className="font-bold">{candidate?.userName || "-"}</h2>
                   <h2 className="text-sm text-gray-500">
                     Completed on:{" "}
                     {moment(candidate.created_at).format(
@@ -48,6 +62,9 @@ function CandidateList({ candidateList }) {
             </div>
           );
         })}
+        {list.length === 0 && (
+          <div className="text-sm text-gray-500">No candidates yet.</div>
+        )}
       </div>
     </div>
   );

@@ -59,7 +59,7 @@ function Login() {
               width={40}
               height={40}
             />
-            <div className="text-2xl text-green-700">GURUJI</div>
+            <div className="text-2xl text-green-700">PrepTrack</div>
           </div>
           <div className="flex justify-center">
             <img

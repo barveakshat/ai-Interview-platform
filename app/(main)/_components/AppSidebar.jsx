@@ -28,11 +28,11 @@ export function AppSidebar() {
           <div className="flex flex-row items-center space-x-1 p-3">
             <Image
               src="/gurujiLogoSm.png"
-              alt="logo small"
+              alt="PrepTrack logo"
               width={40}
               height={40}
             />
-            <div className="text-2xl text-green-700">GURUJI</div>
+            <div className="text-2xl text-green-700">PrepTrack</div>
           </div>
           <Button
             variant="default"
@@ -74,7 +74,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="border-t border-border/50 p-4">
         <div className="text-xs text-center text-muted-foreground">
-          © 2025 Guruji AI
+          © 2025 PrepTrack
         </div>
       </SidebarFooter>
     </Sidebar>

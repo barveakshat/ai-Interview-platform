@@ -25,7 +25,7 @@ function GuestDashboard() {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-4">
               <h1 className="text-4xl font-bold text-card-foreground">
-                Welcome to Guruji AI
+                Welcome to PrepTrack
               </h1>
               <Sparkles className="h-6 w-6 text-emerald-500 animate-pulse" />
             </div>

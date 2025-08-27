@@ -1,10 +1,10 @@
-# Guruji - [live demo](https://guruji.anoopvl.pro)
+# PrepTrack
 
-**Guruji** is an AI-powered interview platform that automates the creation, scheduling, and execution of technical interviews. Leveraging modern web technologies and AI/voice services, Guruji offers a seamless experience for recruiters and candidates alike.
+**PrepTrack** is an AI-powered interview platform that automates the creation, scheduling, and execution of technical interviews. Leveraging modern web technologies and AI/voice services, PrepTrack offers a seamless experience for recruiters and candidates alike.
 
 ### 🔔 **Note**
 
-**Guruji** is still under active development. You might encounter some issues or ongoing UI changes. 💡 For bug reports or suggestions, please contact [anoop@anoopvl.pro](mailto:anoop@anoopvl.pro).
+**PrepTrack** is still under active development. You might encounter some issues or ongoing UI changes. 💡 For bug reports or suggestions, please contact [anoop@anoopvl.pro](mailto:anoop@anoopvl.pro).
 
 ---
 
@@ -23,13 +23,15 @@
 
 ---
 
-## Official Docker Image: [anoopvl/guruji-guruji on Docker Hub](https://hub.docker.com/r/anoopvl/guruji-guruji)
+## Docker Image
+
+Build and push your own image (example shown below). You can also deploy without Docker using pnpm directly.
 
 ## 🧭 Project Flow & User Guide
 
 ### 1. Landing & Authentication
 
-- Open `https://guruji.anoopvl.pro`
+- Open your deployed URL (for local dev: `http://localhost:3000`)
 - Click **Sign in** on the landing page
 - Log in using **Google** or **GitHub** (via Supabase)
 - Upon success, you're redirected to your **Dashboard**
@@ -85,7 +87,7 @@ From here, you can:
 ## 📁 Project Structure
 
 ```
-guruji/
+preptrack/
 ├─ app/
 │  ├─ (main)/dashboard/        # Protected dashboard routes
 │  │   ├─ create-interview/     # Interview creation flow
@@ -105,7 +107,7 @@ guruji/
 ├─ Dockerfile.dev/              # Docker configuration files
 ├─ Dockerfile                   # Docker image configuration
 ├─ docker-compose.yml           # Multi-container setup
-├─ docker-compose.dev.yml       # Multi-container setup for hotreadload
+├─ docker-compose.dev.yml       # Multi-container setup for hot reload
 ├─ .dockerignore               # Docker ignore patterns
 ├─ next.config.mjs              # Next.js config
 └─ package.json                 # Scripts & dependencies
@@ -120,8 +122,8 @@ guruji/
 1. **Clone the repo**
 
 ```bash
-git clone https://github.com/AnoopVL/gurujii.git
-cd gurujii
+git clone https://github.com/arnishbaruah/ai-Interview-platform.git
+cd ai-Interview-platform
 ```
 
 2. **Install dependencies**
@@ -161,8 +163,8 @@ pnpm run dev
 1. **Clone the repo**
 
 ```bash
-git clone https://github.com/AnoopVL/gurujii.git
-cd gurujii
+git clone https://github.com/arnishbaruah/ai-Interview-platform.git
+cd ai-Interview-platform
 ```
 
 2. **Configure environment variables**
@@ -234,24 +236,24 @@ docker-compose logs -f
 
 > _For more screenshots checkout (`/screenshots`) folder_
 
-### Landing Page
+### Landing Page (screenshot)
 
 ![Landing](/screenshots/gurujiLanding1.png)
 
-### Dashboard
+### Dashboard (screenshot)
 
 ![Dashboard](/screenshots/gurujiDashboard1.png)
 
-### Create Interview
+### Create Interview (screenshots)
 
 ![Create Interview](/screenshots/gurujiCreateInterview1.png)
 ![Create Interview](/screenshots/gurujiCreateInterview4.png)
 
-### Live Interview
+### Live Interview (screenshot)
 
 ![Live Interview](/screenshots/gurujiInterviewProcess1.png)
 
-### Feedback Page
+### Feedback Page (screenshot)
 
 ![Feedback](/screenshots/gurujiInterviewDetail2.png)
 
@@ -287,8 +289,8 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ```bash
 # Build and push to Docker Hub
-docker build -t yourusername/gurujii:latest .
-docker push yourusername/gurujii:latest
+docker build -t yourusername/preptrack:latest .
+docker push yourusername/preptrack:latest
 
 # Deploy on any cloud provider supporting Docker
 ```
@@ -370,7 +372,7 @@ Pull requests and issues are welcome. Open for enhancements and feature requests
 ### Development Setup for Contributors
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/yourusername/gurujii.git`
+2. Clone your fork: `git clone https://github.com/yourusername/ai-Interview-platform.git`
 3. Create a feature branch: `git checkout -b feature/amazing-feature`
 4. Set up development environment:
    - **Traditional:** Follow Option 1 in Installation & Setup

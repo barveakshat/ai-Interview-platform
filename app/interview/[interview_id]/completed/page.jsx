@@ -26,7 +26,7 @@ function InterviewCompleted() {
         <div className="flex flex-col gap-1 items-center justify-center">
           <h2 className="text-3xl">Interview Completed!</h2>
           <h2 className="text-sm text-gray-500">
-            Thank you for participating in the Ai driven interview with Guruji
+            Thank you for participating in the AI-driven interview with PrepTrack
           </h2>
         </div>
         <div>

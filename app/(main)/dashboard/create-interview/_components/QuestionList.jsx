@@ -37,9 +37,26 @@ function QuestionList({ formData, onCreateLink }) {
       const Content = result.data.content;
       const jsonArrayMatch = Content.match(/\[[\s\S]*\]/);
 
+      // helper: try to safely parse JSON array-like text returned by the AI
+      const tryParseJsonArray = (raw) => {
+        if (!raw || typeof raw !== "string") throw new Error("Invalid raw input");
+        // remove markdown fences (```json ... ```)
+        let text = raw.replace(/```[\s\S]*?```/g, (m) => m.replace(/```/g, ""));
+        // trim everything before first [ and after last ]
+        const first = text.indexOf("[");
+        const last = text.lastIndexOf("]");
+        if (first !== -1 && last !== -1) text = text.slice(first, last + 1);
+        // normalize some quote characters
+        text = text.replace(/[‘’`]/g, '"');
+        // remove trailing commas before closing brackets/braces
+        text = text.replace(/,\s*(\]|\})/g, "$1");
+        // attempt to parse
+        return JSON.parse(text);
+      };
+
       if (jsonArrayMatch) {
         try {
-          const parsed = JSON.parse(jsonArrayMatch[0]);
+          const parsed = tryParseJsonArray(jsonArrayMatch[0]);
           console.log(parsed);
           setQuestionList(parsed);
         } catch (err) {

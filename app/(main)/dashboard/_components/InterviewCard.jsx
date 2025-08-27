@@ -33,7 +33,7 @@ const formatDuration = (duration) => {
 };
 
 function InterviewCard({ interview, viewDetail, onDelete }) {
-  const url = process.env.NEXT_PUBLIC_HOST_URL + "/" + interview?.interview_id;
+  const url = (process.env.NEXT_PUBLIC_HOST_URL || "http://localhost:3000") + "/interview/" + interview?.interview_id;
 
   const copyLink = () => {
     navigator.clipboard.writeText(url);
@@ -41,7 +41,7 @@ function InterviewCard({ interview, viewDetail, onDelete }) {
   };
 
   const onSend = () => {
-    const subject = encodeURIComponent("Interview Link from Guruji");
+  const subject = encodeURIComponent("Interview Link from PrepTrack");
     const body = encodeURIComponent(
       `Hi,\n\nHere is the interview link:\n${url}`
     );

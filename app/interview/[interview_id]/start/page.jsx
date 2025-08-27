@@ -24,8 +24,10 @@ function StartInterview() {
   const [isInterviewActive, setIsInterviewActive] = useState(false);
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const [isCallActive, setIsCallActive] = useState(false);
+  const interviewEndedRef = useRef(false);
   const videoRef = useRef(null);
   const timerRef = useRef(null);
+  const autoStopTimeoutRef = useRef(null);
   const { interview_id } = useParams();
   const router = useRouter();
 
@@ -40,6 +42,19 @@ function StartInterview() {
     timerRef.current = setInterval(() => {
       setTimer((prevTimer) => prevTimer + 1);
     }, 1000);
+
+    // Setup auto-stop based on interview duration (minutes -> seconds)
+    const durationMinutes = interviewInfo?.interviewData?.duration;
+    if (durationMinutes && !autoStopTimeoutRef.current) {
+      const durationSeconds = Number(durationMinutes) * 60;
+      autoStopTimeoutRef.current = setTimeout(() => {
+        // Only stop if not already ended
+        if (!interviewEndedRef.current) {
+          toast("Interview time is over. Ending interview...");
+          stopInterview();
+        }
+      }, durationSeconds * 1000);
+    }
   };
 
   const stopTimer = () => {
@@ -47,6 +62,10 @@ function StartInterview() {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
+    }
+    if (autoStopTimeoutRef.current) {
+      clearTimeout(autoStopTimeoutRef.current);
+      autoStopTimeoutRef.current = null;
     }
   };
 
@@ -241,21 +260,24 @@ Key Guidelines:
   };
 
   const stopInterview = async () => {
+    if (interviewEndedRef.current) return;
+    interviewEndedRef.current = true;
     console.log("Stopping interview...");
     setIsGeneratingFeedback(true);
-
     try {
       // Stop the call
       vapi.stop();
-
       // Stop camera and timer immediately
       stopCamera();
       stopTimer();
       setIsCallActive(false);
-
       toast("Interview ended. Generating feedback...");
-
-      // Generate feedback immediately since we have the conversation data
+      // Wait for conversation to be set, up to 2 seconds
+      let waited = 0;
+      while (!conversation && waited < 2000) {
+        await new Promise((res) => setTimeout(res, 200));
+        waited += 200;
+      }
       await GenerateFeedback();
     } catch (error) {
       console.error("Error stopping interview:", error);
@@ -266,7 +288,8 @@ Key Guidelines:
 
   // Set up VAPI event listeners in useEffect
   useEffect(() => {
-    const handleCallStart = () => {
+  const handleCallStart = () => {
+      if (interviewEndedRef.current) return;
       console.log("Call has started.");
       setIsCallActive(true);
       startTimer(); // Start timer when call starts
@@ -274,29 +297,64 @@ Key Guidelines:
     };
 
     const handleSpeechStart = () => {
+      if (interviewEndedRef.current) return;
       console.log("Assistant speech has started.");
       setActiveUser(false);
     };
 
     const handleSpeechEnd = () => {
+      if (interviewEndedRef.current) return;
       console.log("Assistant speech has ended.");
       setActiveUser(true);
     };
 
     const handleCallEnd = async () => {
+      if (interviewEndedRef.current) return;
+      interviewEndedRef.current = true;
       console.log("Call has ended naturally.");
       setIsCallActive(false);
       stopTimer(); // Stop timer when call ends
-
-      // Only generate feedback if not already generating
       if (!isGeneratingFeedback) {
         setIsGeneratingFeedback(true);
         toast("Interview ended. Generating feedback...");
+        // Wait for conversation to be set, up to 2 seconds
+        let waited = 0;
+        while (!conversation && waited < 2000) {
+          await new Promise((res) => setTimeout(res, 200));
+          waited += 200;
+        }
         await GenerateFeedback();
       }
     };
 
+    const handleVapiError = async (err) => {
+      // Try to detect meeting-ejection / "Meeting has ended" messages and recover gracefully
+      try {
+        const msg = err?.message || JSON.stringify(err || "");
+        if (msg && /eject|ejection|meeting has ended/i.test(msg)) {
+          console.log("Detected meeting end via error event:", msg);
+          if (!interviewEndedRef.current) {
+            interviewEndedRef.current = true;
+            stopTimer();
+            stopCamera();
+            setIsCallActive(false);
+            setIsGeneratingFeedback(true);
+            toast("Interview ended. Generating feedback...");
+            // small delay to allow last messages to flush
+            await new Promise((r) => setTimeout(r, 300));
+            await GenerateFeedback();
+          }
+          return;
+        }
+      } catch (e) {
+        console.error("Error handling vapi error event:", e);
+      }
+      // Fallback: log normally
+      console.error(err);
+    };
+
     const handleMessage = (message) => {
+      if (interviewEndedRef.current) return;
       console.log("Message: ", message);
       if (message?.conversation) {
         const ConvoString = JSON.stringify(message.conversation);
@@ -305,22 +363,55 @@ Key Guidelines:
       }
     };
 
-    // Add event listeners
     vapi.on("call-start", handleCallStart);
     vapi.on("speech-start", handleSpeechStart);
     vapi.on("speech-end", handleSpeechEnd);
     vapi.on("call-end", handleCallEnd);
     vapi.on("message", handleMessage);
+    // If vapi exposes error events, handle them
+    try {
+      vapi.on("error", handleVapiError);
+    } catch (e) {
+      // ignore if not supported
+    }
 
-    // Cleanup function
+    // Global window error handler to catch daily-js console errors like meeting ejection
+    const windowErrorHandler = async (event) => {
+      try {
+        const message = event?.message || (event?.error && event.error.message) || "";
+        if (message && /Meeting ended due to ejection|Meeting has ended/i.test(message)) {
+          console.log("Global error detected meeting end:", message);
+          if (!interviewEndedRef.current) {
+            interviewEndedRef.current = true;
+            stopTimer();
+            stopCamera();
+            setIsCallActive(false);
+            setIsGeneratingFeedback(true);
+            toast("Interview ended. Generating feedback...");
+            // small delay to allow last messages to flush
+            await new Promise((r) => setTimeout(r, 300));
+            await GenerateFeedback();
+          }
+        }
+      } catch (err) {
+        console.error("Error in windowErrorHandler:", err);
+      }
+      // let the event continue to default handling
+    };
+    window.addEventListener("error", windowErrorHandler);
+
     return () => {
       vapi.off("call-start", handleCallStart);
       vapi.off("speech-start", handleSpeechStart);
       vapi.off("speech-end", handleSpeechEnd);
       vapi.off("call-end", handleCallEnd);
       vapi.off("message", handleMessage);
+      try {
+        vapi.off("error", handleVapiError);
+      } catch (e) {}
+      window.removeEventListener("error", windowErrorHandler);
     };
-  }, [isGeneratingFeedback]); // Add isGeneratingFeedback as dependency
+  }, [isGeneratingFeedback, conversation]);
 
   const GenerateFeedback = async () => {
     console.log("GenerateFeedback called with conversation:", conversation);

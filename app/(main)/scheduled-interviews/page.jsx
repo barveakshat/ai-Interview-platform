@@ -39,13 +39,34 @@ function ScheduledInterviews() {
         .order("id", { ascending: false });
 
       if (error) {
-        console.error("Error fetching interviews:", error);
-        toast.error("Failed to fetch interviews.");
+        // Detailed logging to help diagnose schema vs logic issues
+        console.error("Error fetching interviews (relational select):", error);
+        console.error("Supabase error details:", {
+          message: error.message,
+          hint: error.hint,
+          details: error.details,
+          code: error.code,
+        });
+        toast.error("Failed to fetch interviews (relational select). Trying fallback...");
+
+        // Fallback: try a simple select without the relation to check permissions/schema
+        const { data: simpleData, error: simpleError } = await supabase
+          .from("interviews")
+          .select("id, jobPosition, duration, interview_id, created_at, userEmail")
+          .eq("userEmail", user?.email)
+          .order("id", { ascending: false });
+
+        if (simpleError) {
+          console.error("Fallback simple select also failed:", simpleError);
+          toast.error("Failed to fetch interviews.");
+          return;
+        }
+        setInterviewList(simpleData || []);
         return;
       }
       setInterviewList(interviews || []);
     } catch (err) {
-      console.error("Unexpected error:", err);
+      console.error("Unexpected error in GetInterviewList:", err);
       toast.error("An unexpected error occurred.");
     }
   };

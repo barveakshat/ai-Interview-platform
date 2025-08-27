@@ -33,9 +33,14 @@ const formatDuration = (duration) => {
 };
 
 function InterviewLink({ interview_id, formData }) {
-  const url = process.env.NEXT_PUBLIC_HOST_URL + "/" + interview_id;
+  const hostUrl = process.env.NEXT_PUBLIC_HOST_URL || "http://localhost:3000";
+  const url = interview_id ? `${hostUrl}/interview/${interview_id}` : "";
 
   const onCopyLink = async () => {
+    if (!interview_id) {
+      toast.error("Interview link not ready yet.");
+      return;
+    }
     try {
       await navigator.clipboard.writeText(url);
       toast.success("Link copied to clipboard!");
@@ -47,7 +52,7 @@ function InterviewLink({ interview_id, formData }) {
 
   // Share via email
   const onEmailShare = () => {
-    const subject = encodeURIComponent("Interview Link from Guruji");
+  const subject = encodeURIComponent("Interview Link from PrepTrack");
     const body = encodeURIComponent(
       `Hi,\n\nHere is the interview link:\n${url}`
     );
@@ -95,6 +100,21 @@ function InterviewLink({ interview_id, formData }) {
               <Copy className="w-4 h-4" />
               Copy Link
             </Button>
+            {interview_id ? (
+              <Button
+                asChild
+                variant="outline"
+                className="flex items-center gap-2 hover:bg-accent/80 cursor-pointer">
+                <a href={url} target="_blank" rel="noreferrer">Open</a>
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                disabled
+                className="flex items-center gap-2 cursor-not-allowed opacity-60">
+                Open
+              </Button>
+            )}
           </div>
 
           <div className="h-px bg-border/60 w-full" />

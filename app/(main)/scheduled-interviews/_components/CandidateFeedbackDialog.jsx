@@ -23,7 +23,7 @@ function CandidateFeedbackDialog({ candidate }) {
   };
 
   const onSend = () => {
-    const subject = encodeURIComponent("Interview feedback from Guruji");
+  const subject = encodeURIComponent("Interview feedback from PrepTrack");
     const body = encodeURIComponent(`Hi,\n\nHere is the feedback:\n`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
