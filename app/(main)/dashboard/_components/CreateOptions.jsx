@@ -9,17 +9,17 @@ function CreateOptions() {
       {/* Create Interview Card */}
       <Link
         href="dashboard/create-interview"
-        className="group relative overflow-hidden backdrop-blur-sm bg-card/80 dark:bg-card/70 rounded-xl border border-border/50 p-6 transition-all duration-200 hover:shadow-lg hover:border-border/80">
+        className="group relative overflow-hidden backdrop-blur-sm bg-card border border-border-subtle rounded-2xl p-6 transition-all duration-200 hover:shadow-lg hover:border-border-subtle">
         <div className="relative z-10 flex flex-col space-y-4">
           <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/30 text-primary dark:from-primary/20 dark:to-primary/40">
             <Video className="h-6 w-6" />
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-card-foreground">
+            <h2 className="text-xl font-semibold text-text-primary">
               Create New Interview
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-text-secondary">
               Create AI interviews and schedule them with candidates.
             </p>
           </div>
@@ -37,10 +37,10 @@ function CreateOptions() {
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-card-foreground">
+              <h2 className="text-xl font-semibold text-text-primary">
                 Create Phone Screening Call
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-text-secondary">
                 Schedule phone screening calls with potential candidates.
               </p>
             </div>

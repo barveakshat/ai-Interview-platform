@@ -32,7 +32,7 @@ export function AppSidebar() {
               width={40}
               height={40}
             />
-            <div className="text-2xl text-green-700">PrepTrack</div>
+            <div className="text-2xl text-accent-blue">PrepTrack</div>
           </div>
           <Button
             variant="default"
@@ -53,16 +53,16 @@ export function AppSidebar() {
             <SidebarMenuItem key={index} className="p-1">
               <SidebarMenuButton
                 asChild
-                className={`p-5 ${path === option.path ? "bg-green-100" : ""}`}>
+                className={`p-5 ${path === option.path ? "bg-accent-blue/10" : ""}`}>
                 <Link
                   href={option.path}
                   className="flex items-center space-x-2">
                   <option.icon
-                    className={path === option.path ? "text-green-700" : ""}
+                    className={path === option.path ? "text-accent-blue" : ""}
                   />
                   <span
                     className={`text-[16px] ${
-                      path === option.path ? "text-green-700" : ""
+                      path === option.path ? "text-accent-blue" : ""
                     }`}>
                     {option.name}
                   </span>

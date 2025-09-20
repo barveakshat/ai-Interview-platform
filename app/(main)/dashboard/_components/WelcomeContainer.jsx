@@ -1,4 +1,4 @@
-// app/(main)/dashboard/_components/WelcomeContainer.jsx
+// app/(main)/dashbo            <p className="text-muted-foreground text-text-secondary">rd/_components/WelcomeContainer.jsx
 "use client";
 import React from "react";
 import { useUser } from "@/app/provider";
@@ -9,11 +9,11 @@ function WelcomeContainer() {
   const { user } = useUser();
 
   return (
-    <div className="relative overflow-hidden backdrop-blur-sm bg-card/80 dark:bg-card/70 rounded-xl border border-border/50 shadow-sm p-6 mr-5">
+    <div className="relative overflow-hidden backdrop-blur-sm bg-card border border-border-subtle rounded-2xl p-6 shadow-sm mr-5">
       <div className="flex justify-between items-center relative z-10">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-semibold text-card-foreground">
+            <h2 className="text-2xl font-semibold text-text-primary">
               Welcome back, {user?.name}!
             </h2>
             <Sparkles className="h-5 w-5 text-primary animate-in fade-in" />
