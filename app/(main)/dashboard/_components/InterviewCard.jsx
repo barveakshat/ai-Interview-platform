@@ -17,18 +17,21 @@ import { Mail } from "lucide-react";
 
 // Helper function to format duration
 const formatDuration = (duration) => {
-  if (!duration) return "N/A";
-  
-  // If it's already a string like "5 Min", return as is
-  if (typeof duration === 'string') {
-    return duration;
+  if (duration === null || duration === undefined) return "N/A";
+
+  // Normalize strings like "5 Min" or "5 min" to "5 min"
+  if (typeof duration === "string") {
+    const trimmed = duration.trim();
+    const match = trimmed.match(/^(\d+)\s*(min|minutes|Min|Minutes)?$/i);
+    if (match) return `${match[1]} min`;
+    return trimmed; // fallback: show as-is
   }
-  
-  // If it's a number, convert to "X Min" format
-  if (typeof duration === 'number') {
-    return `${duration} Min`;
+
+  // Numbers -> "X min"
+  if (typeof duration === "number" && !Number.isNaN(duration)) {
+    return `${duration} min`;
   }
-  
+
   return "N/A";
 };
 

@@ -42,7 +42,7 @@ From here, you can:
 
 - Create new interviews (`/dashboard/create-interview`)
 - View all interviews (`/all-interviews`)
-- View scheduled interviews and feedback (`/scheduled-interviews`)
+- View interview feedbacks (`/scheduled-interviews`)
 
 ### 3. Creating an Interview
 

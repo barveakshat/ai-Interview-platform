@@ -78,7 +78,7 @@ function ScheduledInterviews() {
   return (
     <div className="p-5">
       <h2 className="text-xl font-bold">
-        Interview list with candidate feedback
+        Interview list with feedback report
       </h2>
       {interviewList?.length == 0 && (
         <div className="flex flex-col p-5 space-y-3 items-center">
