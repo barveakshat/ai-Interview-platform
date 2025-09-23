@@ -29,112 +29,127 @@ const formatDuration = (duration) => {
 
 function InterviewDetailContainer({ interviewDetail }) {
   return (
-    <div className="relative overflow-hidden backdrop-blur-sm bg-card/80 dark:bg-card/70 rounded-xl border border-border/50 shadow-lg mt-5 p-6">
+    <div className="space-y-8">
       {/* Header Section */}
-      <div className="relative z-10 mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-primary rounded-lg">
-            <FileText className="h-5 w-5 text-white" />
+      <div className="relative overflow-hidden backdrop-blur-sm bg-card border border-border rounded-2xl p-8 shadow-lg">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="p-3 bg-primary rounded-xl">
+            <FileText className="h-6 w-6 text-primary-foreground" />
           </div>
-          <h2 className="text-2xl font-bold text-card-foreground">
-            {interviewDetail?.jobPosition}
-          </h2>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="group p-4 rounded-xl bg-white border border-gray-200 hover:shadow-md transition-all duration-300">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-emerald-500/10 rounded-lg group-hover:bg-emerald-500/20 transition-colors">
-              <Clock className="h-4 w-4 text-emerald-600" />
-            </div>
-            <span className="text-sm font-medium text-gray-700">Duration</span>
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">
+              {interviewDetail?.jobPosition || "Loading..."}
+            </h2>
+            <p className="text-muted-foreground">Position Details</p>
           </div>
-          <p className="text-lg font-semibold text-gray-800">
-            {formatDuration(interviewDetail?.duration)}
-          </p>
         </div>
 
-        <div className="group p-4 rounded-xl bg-white border border-gray-200 hover:shadow-md transition-all duration-300">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-emerald-500/10 rounded-lg group-hover:bg-emerald-500/20 transition-colors">
-              <Calendar className="h-4 w-4 text-emerald-600" />
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="group relative overflow-hidden backdrop-blur-sm bg-secondary/50 border border-border/50 rounded-xl p-6 transition-all duration-300 hover:shadow-md hover:border-primary/50">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                <Clock className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">Duration</span>
             </div>
-            <span className="text-sm font-medium text-gray-700">
-              Created on
-            </span>
+            <p className="text-xl font-bold text-foreground">
+              {formatDuration(interviewDetail?.duration)}
+            </p>
           </div>
-          <p className="text-lg font-semibold text-gray-800">
-            {moment(interviewDetail?.created_at).format("DD MMM YYYY")}
-          </p>
+
+          <div className="group relative overflow-hidden backdrop-blur-sm bg-secondary/50 border border-border/50 rounded-xl p-6 transition-all duration-300 hover:shadow-md hover:border-primary/50">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                <Calendar className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">Created on</span>
+            </div>
+            <p className="text-xl font-bold text-foreground">
+              {moment(interviewDetail?.created_at).format("DD MMM YYYY")}
+            </p>
+          </div>
+
+          <div className="group relative overflow-hidden backdrop-blur-sm bg-secondary/50 border border-border/50 rounded-xl p-6 transition-all duration-300 hover:shadow-md hover:border-primary/50">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                <Tag className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">Type</span>
+            </div>
+            <p className="text-xl font-bold text-foreground">
+              {interviewDetail?.type
+                ? JSON.parse(interviewDetail.type).join(" + ")
+                : "Not specified"}
+            </p>
+          </div>
         </div>
 
-        <div className="group p-4 rounded-xl bg-white border border-gray-200 hover:shadow-md transition-all duration-300">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-emerald-500/10 rounded-lg group-hover:bg-emerald-500/20 transition-colors">
-              <Tag className="h-4 w-4 text-emerald-600" />
-            </div>
-            <span className="text-sm font-medium text-gray-700">Type</span>
-          </div>
-          <p className="text-lg font-semibold text-gray-800">
-            {interviewDetail?.type
-              ? JSON.parse(interviewDetail.type).join(" + ")
-              : ""}
-          </p>
-        </div>
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none rounded-2xl" />
       </div>
 
       {/* Job Description Section */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="relative z-10 p-2 bg-primary rounded-lg">
-            <FileText className="h-5 w-5 text-white" />
+      <div className="relative overflow-hidden backdrop-blur-sm bg-card border border-border rounded-2xl p-8 shadow-lg">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="p-3 bg-primary rounded-xl">
+            <FileText className="h-6 w-6 text-primary-foreground" />
           </div>
-          <h3 className="text-xl font-bold text-card-foreground">
-            Job Description
-          </h3>
+          <div>
+            <h3 className="text-xl font-bold text-foreground">Job Description</h3>
+            <p className="text-muted-foreground">Position requirements and details</p>
+          </div>
         </div>
-        <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
-          <p className="text-gray-700 leading-relaxed">
-            {interviewDetail?.jobDescription}
+        
+        <div className="relative overflow-hidden backdrop-blur-sm bg-secondary/30 border border-border/50 rounded-xl p-6">
+          <p className="text-foreground leading-relaxed">
+            {interviewDetail?.jobDescription || "No description provided."}
           </p>
         </div>
+
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 pointer-events-none rounded-2xl" />
       </div>
 
       {/* Interview Questions Section */}
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="relative z-10 p-2 bg-primary rounded-lg">
-            <HelpCircle className="h-5 w-5 text-white" />
+      <div className="relative overflow-hidden backdrop-blur-sm bg-card border border-border rounded-2xl p-8 shadow-lg">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary rounded-xl">
+              <HelpCircle className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-foreground">Interview Questions</h3>
+              <p className="text-muted-foreground">AI-generated interview questions</p>
+            </div>
           </div>
-          <h3 className="text-xl font-bold text-card-foreground">
-            Interview Questions
-          </h3>
-          <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm font-medium rounded-full">
-            {interviewDetail?.questionList?.length || 0} Questions
-          </span>
+          <div className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-full">
+            <span className="text-primary text-sm font-medium">
+              {interviewDetail?.questionList?.length || 0} Questions
+            </span>
+          </div>
         </div>
+        
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {interviewDetail?.questionList?.map((item, index) => (
             <div
               key={item?.question || index}
-              className="group p-4 rounded-xl bg-white border border-gray-200 hover:shadow-md hover:border-emerald-200 transition-all duration-300">
-              <div className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-emerald-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+              className="group relative overflow-hidden backdrop-blur-sm bg-secondary/30 border border-border/50 rounded-xl p-6 transition-all duration-300 hover:shadow-md hover:border-primary/50">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground text-sm font-bold rounded-full flex items-center justify-center">
                   {index + 1}
-                </span>
-                <p className="text-gray-700 text-sm leading-relaxed group-hover:text-gray-800 transition-colors">
+                </div>
+                <p className="text-foreground leading-relaxed group-hover:text-primary/90 transition-colors">
                   {item?.question}
                 </p>
               </div>
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Decorative gradient - very subtle */}
-      <div className="absolute inset-0 bg-gradient-to-r from-gray-50/20 via-transparent to-gray-50/20" />
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none rounded-2xl" />
+      </div>
     </div>
   );
 }

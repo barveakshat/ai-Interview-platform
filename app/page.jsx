@@ -11,7 +11,6 @@ import {
   Clock,
   FileSpreadsheet,
   UserCheck,
-  CheckCircle2,
   ChevronRight,
   Play,
   Sparkles,
@@ -234,15 +233,15 @@ export default function Home() {
 
                       <div className="flex items-center justify-center gap-4 mt-4 text-xs text-gray-500">
                         <div className="flex items-center gap-1">
-                          <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                          <Image src="/check.png" alt="Check" width={12} height={12} className="object-contain" />
                           <span>No credit card</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                          <Image src="/check.png" alt="Check" width={12} height={12} className="object-contain" />
                           <span>Instant access</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                          <Image src="/check.png" alt="Check" width={12} height={12} className="object-contain" />
                           <span>Full features</span>
                         </div>
                       </div>
@@ -579,7 +578,7 @@ export default function Home() {
                   <div className="bg-white rounded-xl p-6 border border-emerald-100 shadow-sm flex-grow">
                     <h3 className="text-xl font-semibold mb-2 flex items-center">
                       Feedback and verdict
-                      <CheckCircle2 className="h-5 w-5 text-emerald-500 ml-2" />
+                      <Image src="/check.png" alt="Check" width={20} height={20} className="object-contain ml-2" />
                     </h3>
                     <p className="text-gray-600">
                       Get instant feedback on the interviews that where attended

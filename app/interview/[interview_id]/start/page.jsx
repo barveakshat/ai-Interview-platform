@@ -499,38 +499,66 @@ Key Guidelines:
   };
 
   return (
-    <div className="relative">
+    <div className="relative min-h-screen bg-background">
       {/* Main Content */}
       <div
-        className={`p-20 lg:px-48 xl:px-56 bg-gray-200 ${
+        className={`p-6 md:p-8 lg:p-12 xl:p-16 ${
           isGeneratingFeedback ? "blur-sm pointer-events-none" : ""
         }`}>
-        <h2 className="font-bold justify-between text-xl flex">
-          Ai Interview Session
-          <span className="flex gap-2 justify-center">
-            <Timer />
-            {formatTime(timer)}
-          </span>
-        </h2>
-
-        <div className="grid grid-col-1 md:grid-cols-2 gap-7 mt-7">
-          <div className="h-[400px] rounded-lg flex flex-col gap-3 items-center justify-center border-2 border-[#00a63e] shadow-[0_4px_20px_#00a63e33]">
-            <div className="relative">
-              {!activeUser && isCallActive && (
-                <span className="absolute inset-0 rounded-full opacity-75 bg-[#e6f9ee] animate-ping" />
-              )}
-              <Image
-                src="/gurujiPortrait.png"
-                alt="ai-interviewer"
-                width={100}
-                height={100}
-                className="w-[100px] h-[100px] rounded-full object-cover ring-4 ring-[#00a63e]"
-              />
-            </div>
-            <h2 className="text-lg">Ai Recruiter</h2>
+        
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8 p-6 bg-card border border-border rounded-2xl shadow-sm">
+          <h1 className="text-2xl font-bold text-foreground">
+            AI Interview Session
+          </h1>
+          <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-primary">
+            <Timer className="h-4 w-4" />
+            <span className="font-mono text-sm font-medium">
+              {formatTime(timer)}
+            </span>
           </div>
-          <div>
-            <div className="h-[400px] rounded-lg flex flex-col gap-3 items-center justify-center border-2 border-[#00a63e] shadow-[0_4px_20px_#00a63e33] relative overflow-hidden">
+        </div>
+
+        {/* Video Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          {/* AI Recruiter Section */}
+          <div className="relative overflow-hidden backdrop-blur-sm bg-card border border-border rounded-2xl p-8 shadow-lg">
+            <div className="flex flex-col items-center space-y-6">
+              <div className="relative">
+                {!activeUser && isCallActive && (
+                  <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+                )}
+                <div className="relative">
+                  <Image
+                    src="/gurujiPortrait.png"
+                    alt="AI Interviewer"
+                    width={120}
+                    height={120}
+                    className="w-[120px] h-[120px] rounded-full object-cover border-4 border-primary shadow-lg"
+                  />
+                  {!activeUser && isCallActive && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-2 border-card rounded-full animate-pulse" />
+                  )}
+                </div>
+              </div>
+              
+              <div className="text-center space-y-2">
+                <h2 className="text-xl font-semibold text-foreground">
+                  AI Recruiter
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {isCallActive ? "Speaking..." : "Ready to interview"}
+                </p>
+              </div>
+            </div>
+            
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none rounded-2xl" />
+          </div>
+
+          {/* User Video Section */}
+          <div className="relative overflow-hidden backdrop-blur-sm bg-card border border-border rounded-2xl p-8 shadow-lg">
+            <div className="relative h-[300px] bg-secondary/50 rounded-xl overflow-hidden border border-border/50">
               {isCameraOn ? (
                 <>
                   <video
@@ -538,74 +566,118 @@ Key Guidelines:
                     autoPlay
                     playsInline
                     muted
-                    className="absolute inset-0 w-full h-full object-cover rounded-lg"
-                    onLoadedMetadata={() =>
-                      console.log("Video metadata loaded")
-                    }
+                    className="absolute inset-0 w-full h-full object-cover rounded-xl"
+                    onLoadedMetadata={() => console.log("Video metadata loaded")}
                     onError={(e) => console.log("Video error:", e)}
                   />
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
-                    <h2 className="text-lg text-white bg-black bg-opacity-50 px-3 py-1 rounded">
-                      {interviewInfo?.userName}
-                    </h2>
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <div className="bg-background/80 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
+                      <p className="text-sm font-medium text-foreground text-center">
+                        {interviewInfo?.userName}
+                      </p>
+                    </div>
                   </div>
                 </>
               ) : (
-                <>
+                <div className="flex flex-col items-center justify-center h-full space-y-4">
                   <div className="relative">
                     {activeUser && !isCameraOn && isCallActive && (
-                      <span className="absolute inset-0 rounded-full opacity-75 bg-[#e6f9ee] animate-ping" />
+                      <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
                     )}
-                    <h2 className="text-4xl bg-primary text-white p-3 rounded-full px-8 py-6">
-                      {interviewInfo?.userName[0]}
-                    </h2>
+                    <div className="w-20 h-20 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">
+                      {interviewInfo?.userName?.[0]?.toUpperCase() || "U"}
+                    </div>
+                    {activeUser && isCallActive && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-2 border-card rounded-full animate-pulse" />
+                    )}
                   </div>
-                  <h2 className="text-lg">{interviewInfo?.userName}</h2>
-                </>
+                  <div className="text-center space-y-1">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      {interviewInfo?.userName}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {isCameraOn ? "Camera On" : "Camera Off"}
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
+            
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 pointer-events-none rounded-2xl" />
           </div>
         </div>
 
-        <div className="mt-9 flex flex-row gap-8 justify-center">
-          <Mic className="bg-blue-400 rounded-full h-12 w-12 p-3 cursor-pointer transform transition-transform hover:scale-110 hover:shadow-lg" />
+        {/* Control Buttons */}
+        <div className="flex justify-center gap-6 mb-8">
+          {/* Microphone Button */}
+          <div className="flex flex-col items-center gap-2">
+            <button className="bg-blue-500 hover:bg-blue-600 text-white rounded-full h-14 w-14 p-4 transition-all duration-200 hover:scale-110 hover:shadow-lg flex items-center justify-center">
+              <Mic className="h-6 w-6" />
+            </button>
+            <span className="text-xs text-muted-foreground">Microphone</span>
+          </div>
 
           {/* Camera Toggle Button */}
-          <button
-            onClick={toggleCamera}
-            disabled={isGeneratingFeedback}
-            className="bg-green-400 rounded-full h-12 w-12 p-3 cursor-pointer transform transition-transform hover:scale-110 hover:shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
-            {isCameraOn ? (
-              <Video className="h-6 w-6 text-white" />
-            ) : (
-              <VideoOff className="h-6 w-6 text-white" />
-            )}
-          </button>
+          <div className="flex flex-col items-center gap-2">
+            <button
+              onClick={toggleCamera}
+              disabled={isGeneratingFeedback}
+              className="bg-green-500 hover:bg-green-600 text-white rounded-full h-14 w-14 p-4 transition-all duration-200 hover:scale-110 hover:shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+              {isCameraOn ? (
+                <Video className="h-6 w-6" />
+              ) : (
+                <VideoOff className="h-6 w-6" />
+              )}
+            </button>
+            <span className="text-xs text-muted-foreground">
+              {isCameraOn ? "Turn Off Camera" : "Turn On Camera"}
+            </span>
+          </div>
 
-          <AlertConfirmation
-            stopInterview={stopInterview}
-            disabled={isGeneratingFeedback}>
-            <Phone className="bg-red-400 rounded-full h-12 w-12 p-3 cursor-pointer transform transition-transform hover:scale-110 hover:shadow-lg" />
-          </AlertConfirmation>
+          {/* End Interview Button */}
+          <div className="flex flex-col items-center gap-2">
+            <AlertConfirmation
+              stopInterview={stopInterview}
+              disabled={isGeneratingFeedback}>
+              <button className="bg-red-500 hover:bg-red-600 text-white rounded-full h-14 w-14 p-4 transition-all duration-200 hover:scale-110 hover:shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                <Phone className="h-6 w-6" />
+              </button>
+            </AlertConfirmation>
+            <span className="text-xs text-muted-foreground">End Interview</span>
+          </div>
         </div>
 
-        <h2 className="text-gray-500 mt-6 justify-center flex">
-          {isCallActive ? "Interview in process" : "Preparing interview..."}
-        </h2>
+        {/* Status */}
+        <div className="text-center">
+          <p className="text-muted-foreground">
+            {isCallActive ? "Interview in progress..." : "Preparing interview..."}
+          </p>
+        </div>
       </div>
 
       {/* Loading Overlay */}
       {isGeneratingFeedback && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-4 max-w-sm mx-4">
-            <Loader2 className="h-12 w-12 animate-spin text-[#00a63e]" />
-            <h3 className="text-lg font-semibold text-gray-900">
-              Generating Feedback
-            </h3>
-            <p className="text-gray-600 text-center">
-              Please wait while we analyze your interview and generate
-              personalized feedback...
-            </p>
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="relative overflow-hidden backdrop-blur-sm bg-card border border-border rounded-2xl p-8 shadow-2xl max-w-md mx-4">
+            <div className="flex flex-col items-center space-y-6">
+              <div className="relative">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+              </div>
+              
+              <div className="text-center space-y-2">
+                <h3 className="text-xl font-semibold text-foreground">
+                  Generating Feedback
+                </h3>
+                <p className="text-muted-foreground">
+                  Please wait while we analyze your interview and generate personalized feedback...
+                </p>
+              </div>
+            </div>
+            
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none rounded-2xl" />
           </div>
         </div>
       )}

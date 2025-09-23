@@ -97,7 +97,7 @@ function Interview() {
                 Full Name
               </label>
               <Input
-                placeholder="e.g. Anoop Lanjekar"
+                placeholder="e.g.  Akshat Barve"
                 className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                 onChange={(event) => setUserName(event.target.value)}
                 value={userName || ""}
@@ -110,7 +110,7 @@ function Interview() {
               </label>
               <Input
                 type="email"
-                placeholder="e.g. anoop@gmail.com"
+                placeholder="e.g.  abcd@gmail.com"
                 className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                 onChange={(event) => setUserEmail(event.target.value)}
                 value={userEmail || ""}

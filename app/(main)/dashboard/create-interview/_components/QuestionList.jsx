@@ -3,12 +3,13 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { LoaderCircle, ArrowRight, Check, Sparkles } from "lucide-react";
+import { LoaderCircle, ArrowRight, Sparkles } from "lucide-react";
 import QuestionListContainer from "./QuestionListContainer";
 import { supabase } from "@/services/supabaseClient";
 import { useUser } from "@/app/provider";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 function QuestionList({ formData, onCreateLink }) {
   const [loading, setLoading] = useState(false);
@@ -180,7 +181,7 @@ function QuestionList({ formData, onCreateLink }) {
               ) : saveFinished ? (
                 <>
                   Create Interview Link and Finish
-                  <Check className="h-4 w-4" />
+                  <Image src="/check.png" alt="Check" width={16} height={16} className="object-contain" />
                 </>
               ) : (
                 <>

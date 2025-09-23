@@ -7,13 +7,13 @@ import {
   Mail,
   ArrowLeft,
   Plus,
-  CheckCircle,
   Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FaWhatsapp, FaSlack } from "react-icons/fa";
 import Link from "next/link";
 import { toast } from "sonner";
+import Image from "next/image";
 
 // Helper function to format duration
 const formatDuration = (duration) => {
@@ -65,7 +65,13 @@ function InterviewLink({ interview_id, formData }) {
       <div className="text-center space-y-4">
         <div className="flex justify-center">
           <div className="flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30">
-            <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+            <Image
+              src="/check.png"
+              alt="Success checkmark"
+              width={32}
+              height={32}
+              className="object-contain"
+            />
           </div>
         </div>
         <h2 className="text-2xl font-semibold text-card-foreground">
