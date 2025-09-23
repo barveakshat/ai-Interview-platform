@@ -16,6 +16,17 @@ import { useParams, useRouter } from "next/navigation";
 function StartInterview() {
   const { interviewInfo, setInterviewInfo } = useContext(InterviewDataContext);
   const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY);
+  
+  // Validate VAPI key
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY) {
+      console.error("VAPI public key is missing");
+      toast.error("Configuration error: VAPI key missing");
+    } else {
+      console.log("VAPI initialized with key:", process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY?.substring(0, 10) + "...");
+    }
+  }, []);
+  
   const [activeUser, setActiveUser] = useState(false);
   const [conversation, setConversation] = useState();
   const [isCameraOn, setIsCameraOn] = useState(false);
@@ -32,7 +43,13 @@ function StartInterview() {
   const router = useRouter();
 
   useEffect(() => {
-    interviewInfo && startCall();
+    if (interviewInfo) {
+      console.log("Interview info received:", interviewInfo);
+      // Add a small delay to ensure all components are ready
+      setTimeout(() => {
+        startCall();
+      }, 500);
+    }
   }, [interviewInfo]);
 
   // Timer functions
@@ -183,20 +200,72 @@ function StartInterview() {
   // Cleanup camera and timer on component unmount
   useEffect(() => {
     return () => {
+      // Stop camera
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
       }
+      
+      // Stop timer
       if (timerRef.current) {
         clearInterval(timerRef.current);
+      }
+      
+      // Stop auto-stop timeout
+      if (autoStopTimeoutRef.current) {
+        clearTimeout(autoStopTimeoutRef.current);
+      }
+      
+      // Stop all audio - comprehensive cleanup
+      try {
+        // Stop VAPI call
+        if (vapi) {
+          vapi.stop();
+        }
+        
+        // Stop speech synthesis
+        if (window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        }
+        
+        // Stop all audio elements
+        const audioElements = document.querySelectorAll('audio');
+        audioElements.forEach(audio => {
+          audio.pause();
+          audio.currentTime = 0;
+          audio.src = '';
+          audio.load(); // Reset the audio element completely
+        });
+        
+        // Stop any WebRTC streams
+        if (stream) {
+          stream.getTracks().forEach(track => {
+            track.stop();
+            track.enabled = false;
+          });
+        }
+        
+      } catch (cleanupError) {
+        console.log("Error in cleanup:", cleanupError);
       }
     };
   }, [stream]);
 
   const startCall = () => {
-    let questionList;
+    let questionList = "";
     interviewInfo?.interviewData?.questionList.forEach(
-      (item, index) => (questionList = item?.question + "," + questionList)
+      (item, index) => (questionList = questionList + item?.question + ", ")
     );
+    // Remove trailing comma and space
+    questionList = questionList.replace(/,\s*$/, "");
+    
+    console.log("Starting call with interview data:", interviewInfo);
+    console.log("Question list:", questionList);
+    
+    if (!questionList || questionList.trim() === "") {
+      console.error("No questions found - cannot start interview");
+      toast.error("No questions available for this interview");
+      return;
+    }
 
     const assistantOptions = {
       name: "AI Recruiter",
@@ -256,7 +325,15 @@ Key Guidelines:
         ],
       },
     };
-    vapi.start(assistantOptions);
+    
+    try {
+      console.log("Starting VAPI with assistant options:", assistantOptions);
+      vapi.start(assistantOptions);
+    } catch (error) {
+      console.error("Error starting VAPI call:", error);
+      toast.error("Failed to start interview: " + error.message);
+      interviewEndedRef.current = false; // Reset so user can try again
+    }
   };
 
   const stopInterview = async () => {
@@ -265,13 +342,45 @@ Key Guidelines:
     console.log("Stopping interview...");
     setIsGeneratingFeedback(true);
     try {
-      // Stop the call
-      vapi.stop();
+      // Stop the call and ensure audio is completely stopped
+      if (vapi) {
+        vapi.stop();
+        // Additional safety: try to access and stop any active audio contexts
+        try {
+          // Force stop any ongoing speech synthesis
+          if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+          }
+          
+          // Stop any active audio contexts
+          const audioContexts = [];
+          if (window.AudioContext) {
+            audioContexts.push(window.AudioContext);
+          }
+          if (window.webkitAudioContext) {
+            audioContexts.push(window.webkitAudioContext);
+          }
+          
+          // Stop any active audio elements
+          const audioElements = document.querySelectorAll('audio');
+          audioElements.forEach(audio => {
+            audio.pause();
+            audio.currentTime = 0;
+            audio.src = '';
+          });
+          
+        } catch (audioError) {
+          console.log("Error stopping audio contexts:", audioError);
+        }
+      }
+      
       // Stop camera and timer immediately
       stopCamera();
       stopTimer();
       setIsCallActive(false);
+      setActiveUser(false);
       toast("Interview ended. Generating feedback...");
+      
       // Wait for conversation to be set, up to 2 seconds
       let waited = 0;
       while (!conversation && waited < 2000) {
@@ -288,15 +397,16 @@ Key Guidelines:
 
   // Set up VAPI event listeners in useEffect
   useEffect(() => {
-  const handleCallStart = () => {
-      if (interviewEndedRef.current) return;
-      console.log("Call has started.");
+    const handleCallStart = () => {
+      if (interviewEndedRef.current) {
+        console.log("Call start ignored - interview already ended");
+        return;
+      }
+      console.log("Call has started successfully.");
       setIsCallActive(true);
       startTimer(); // Start timer when call starts
       toast("Interview Started...");
-    };
-
-    const handleSpeechStart = () => {
+    };    const handleSpeechStart = () => {
       if (interviewEndedRef.current) return;
       console.log("Assistant speech has started.");
       setActiveUser(false);
@@ -309,11 +419,35 @@ Key Guidelines:
     };
 
     const handleCallEnd = async () => {
-      if (interviewEndedRef.current) return;
+      if (interviewEndedRef.current) {
+        console.log("Call end ignored - interview already ended");
+        return;
+      }
       interviewEndedRef.current = true;
-      console.log("Call has ended naturally.");
+      console.log("Call has ended naturally. Timer value:", timer);
+      
+      // Additional safety: ensure all audio is stopped
+      try {
+        // Force stop any ongoing speech synthesis
+        if (window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        }
+        
+        // Stop any active audio elements
+        const audioElements = document.querySelectorAll('audio');
+        audioElements.forEach(audio => {
+          audio.pause();
+          audio.currentTime = 0;
+          audio.src = '';
+        });
+      } catch (audioError) {
+        console.log("Error stopping audio in handleCallEnd:", audioError);
+      }
+      
       setIsCallActive(false);
+      setActiveUser(false);
       stopTimer(); // Stop timer when call ends
+      
       if (!isGeneratingFeedback) {
         setIsGeneratingFeedback(true);
         toast("Interview ended. Generating feedback...");
@@ -335,9 +469,26 @@ Key Guidelines:
           console.log("Detected meeting end via error event:", msg);
           if (!interviewEndedRef.current) {
             interviewEndedRef.current = true;
+            
+            // Stop all audio immediately
+            try {
+              if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+              }
+              const audioElements = document.querySelectorAll('audio');
+              audioElements.forEach(audio => {
+                audio.pause();
+                audio.currentTime = 0;
+                audio.src = '';
+              });
+            } catch (audioError) {
+              console.log("Error stopping audio in handleVapiError:", audioError);
+            }
+            
             stopTimer();
             stopCamera();
             setIsCallActive(false);
+            setActiveUser(false);
             setIsGeneratingFeedback(true);
             toast("Interview ended. Generating feedback...");
             // small delay to allow last messages to flush
@@ -383,9 +534,26 @@ Key Guidelines:
           console.log("Global error detected meeting end:", message);
           if (!interviewEndedRef.current) {
             interviewEndedRef.current = true;
+            
+            // Stop all audio immediately
+            try {
+              if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+              }
+              const audioElements = document.querySelectorAll('audio');
+              audioElements.forEach(audio => {
+                audio.pause();
+                audio.currentTime = 0;
+                audio.src = '';
+              });
+            } catch (audioError) {
+              console.log("Error stopping audio in windowErrorHandler:", audioError);
+            }
+            
             stopTimer();
             stopCamera();
             setIsCallActive(false);
+            setActiveUser(false);
             setIsGeneratingFeedback(true);
             toast("Interview ended. Generating feedback...");
             // small delay to allow last messages to flush

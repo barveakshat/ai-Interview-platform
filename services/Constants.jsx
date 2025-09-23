@@ -76,45 +76,53 @@ Adjust the number and depth of questions to match the interview duration.
 Ensure the questions match the tone and structure of a real-life {{type}} interview.
 
 Format your response in JSON format with array list of questions.
-format: interviewQuestions=[
-  {
-    question:"
-    type:'Technical/Behavioral/Experince/Problem Solving/Leaseship'
-  },{
-  ...  
-  }
-]
 
-The goal is to create a structured, relevant, and time-optimized interview plan for a {(jobTitle}} role.
-I am going to use the json format further, so strictly give the questions only, that too in the json format in output, nothing else.
-Also you can mention in the question itself, how much time should we allocate to that particular question. Try avoiding asking questions where user has to code something(just ask for their approach to solve that problem).
+IMPORTANT: You must respond with valid JSON only. No additional text, explanations, or markdown formatting.
+
+Response format (valid JSON object):
+{
+  "interviewQuestions": [
+    {
+      "id": 1,
+      "question": "Your question text here",
+      "type": "Technical/Behavioral/Experience/Problem Solving/Leadership",
+      "difficulty": "Easy/Medium/Hard"
+    }
+  ]
+}
+
+The goal is to create a structured, relevant, and time-optimized interview plan for a {{jobTitle}} role.
+Return only valid JSON. No markdown, no extra text, just the JSON object.
+Try avoiding asking questions where user has to code something (just ask for their approach to solve that problem).
 `;
 
 export const FEEDBACK_PROMPT = `
 {{conversation}}
-Depends on this Interview Conversation between assitant and user, 
-Give me feedback for user interview. Give me rating out of 10 for technical Skills, 
-Communication, Problem Solving, Experince. Also give me summery in 3 lines 
-about the interview and one line to let me know whether is recommanded 
-for hire or not with msg. Give me response in JSON format
+Based on this Interview Conversation between assistant and user, 
+give me feedback for user interview. Give me rating out of 10 for technical Skills, 
+Communication, Problem Solving, Experience. Also give me summary in 3 lines 
+about the interview and one line to let me know whether is recommended 
+for hire or not with msg.
 
+IMPORTANT: You must respond with valid JSON only. No additional text, explanations, or markdown formatting.
+
+Response format (valid JSON object):
 {
-    feedback:{
-        rating:{
-            techicalSkills:5,
-            communication:6,
-            problemSolving:4,
-            experince:7,
-            overall:6
-        },
-        summary:<in 3 Line>,
-        Recommendation:'',
-        RecommendationMsg:''
-    }
+  "feedback": {
+    "rating": {
+      "technicalSkills": 5,
+      "communication": 6,
+      "problemSolving": 4,
+      "experience": 7,
+      "overall": 6
+    },
+    "summary": "Summary in 3 lines about the interview performance and key observations.",
+    "Recommendation": "Yes",
+    "RecommendationMsg": "Brief message explaining the recommendation"
+  }
 }
 
-Give the response in a json format, also give only what is asked in the example format, no need of any other textual response.
-And when you dont get enough conversation, try creating some generic response. Also give the recommendation in only Yes or No.
+Return only valid JSON. Give the recommendation in only Yes or No.
 
 When you get abosolutely no response from the user in the interview, don't generate a generic response give 0 rating to all aspects.  
 For those interviews with very less response or no response from the user give recommendation as "No".

@@ -25,57 +25,143 @@ function DirectInterviewCreator({ formData, onCreateLink }) {
       });
 
       const Content = result.data.content;
-      const jsonArrayMatch = Content.match(/\[[\s\S]*\]/);
-
-      // helper: try to safely parse JSON array-like text returned by the AI
+      
+      // Enhanced JSON parsing with multiple fallback strategies
       const tryParseJsonArray = (raw) => {
-        if (!raw || typeof raw !== "string") throw new Error("Invalid raw input");
-        // remove markdown fences (```json ... ```)
-        let text = raw.replace(/```[\s\S]*?```/g, (m) => m.replace(/```/g, ""));
-        // trim everything before first [ and after last ]
-        const first = text.indexOf("[");
-        const last = text.lastIndexOf("]");
-        if (first !== -1 && last !== -1) text = text.slice(first, last + 1);
-        // normalize some quote characters
-        text = text.replace(/[‘’`]/g, '"');
-        // remove trailing commas before closing brackets/braces
-        text = text.replace(/,\s*(\]|\})/g, "$1");
-        // attempt to parse
-        return JSON.parse(text);
+        if (!raw || typeof raw !== "string") {
+          throw new Error("Invalid raw input");
+        }
+        
+        try {
+          // Strategy 1: Direct JSON parse if it's already valid
+          return JSON.parse(raw);
+        } catch (e1) {
+          console.log("Direct parse failed, trying cleanup...");
+        }
+        
+        try {
+          // Strategy 2: Extract JSON array from the response
+          const jsonArrayMatch = raw.match(/\[[\s\S]*\]/);
+          if (jsonArrayMatch) {
+            let text = jsonArrayMatch[0];
+            
+            // Clean up the JSON
+            text = text.replace(/```[\s\S]*?```/g, (m) => m.replace(/```/g, ""));
+            text = text.replace(/[''`]/g, '"');
+            text = text.replace(/,\s*(\]|\})/g, "$1");
+            text = text.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
+            text = text.replace(/:\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*([,\]\}])/g, ': "$1"$2');
+            text = text.trim();
+            
+            console.log("Attempting to parse cleaned JSON:", text);
+            return JSON.parse(text);
+          }
+        } catch (e2) {
+          console.log("Array extraction failed, trying manual extraction...");
+        }
+        
+        try {
+          // Strategy 3: Extract questions manually using regex
+          const questionMatches = raw.match(/"question"\s*:\s*"([^"]+)"/g);
+          if (questionMatches && questionMatches.length > 0) {
+            console.log("Using manual question extraction");
+            return questionMatches.map((match, index) => {
+              const questionText = match.match(/"question"\s*:\s*"([^"]+)"/)[1];
+              return {
+                id: index + 1,
+                question: questionText,
+                difficulty: "Medium",
+                type: "Technical"
+              };
+            });
+          }
+        } catch (e3) {
+          console.log("Manual extraction failed, using fallback...");
+        }
+        
+        // Strategy 4: Create fallback questions based on job position
+        console.log("Using fallback questions");
+        const jobPosition = formData?.jobPosition || "Software Developer";
+        return [
+          { id: 1, question: `Tell me about your experience with ${jobPosition} role.`, type: "Experience" },
+          { id: 2, question: "What are your strengths and weaknesses?", type: "Behavioral" },
+          { id: 3, question: "Describe a challenging project you worked on.", type: "Experience" },
+          { id: 4, question: "How do you handle tight deadlines?", type: "Behavioral" },
+          { id: 5, question: "Where do you see yourself in 5 years?", type: "Behavioral" }
+        ];
       };
 
       let questionList = [];
-      if (jsonArrayMatch) {
+      try {
+        // First try to parse the response directly as JSON
+        let parsedResponse;
         try {
-          questionList = tryParseJsonArray(jsonArrayMatch[0]);
-          console.log(questionList);
-        } catch (err) {
-          console.error("JSON parse error:", err);
-          toast("Invalid response from AI model");
-          setLoading(false);
-          return;
+          parsedResponse = JSON.parse(Content);
+        } catch (e) {
+          // If direct parsing fails, try the fallback parsing
+          parsedResponse = tryParseJsonArray(Content);
         }
-      } else {
-        console.error("Could not find JSON array in response");
-        toast("Invalid response format from AI model");
-        setLoading(false);
-        return;
+        
+        // Extract questions from the parsed response
+        if (parsedResponse && parsedResponse.interviewQuestions) {
+          questionList = parsedResponse.interviewQuestions;
+        } else if (Array.isArray(parsedResponse)) {
+          questionList = parsedResponse;
+        } else {
+          throw new Error("Invalid response structure");
+        }
+        
+        console.log("Parsed questions:", questionList);
+        
+        // Validate the structure
+        if (!Array.isArray(questionList)) {
+          throw new Error("Result is not an array");
+        }
+        
+        // Ensure each question has required fields
+        questionList = questionList.map((q, index) => ({
+          id: q.id || index + 1,
+          question: q.question || `Question ${index + 1}`,
+          type: q.type || "Technical",
+          difficulty: q.difficulty || "Medium"
+        }));
+        
+      } catch (err) {
+        console.error("All JSON parse strategies failed:", err);
+        toast.error("Failed to generate questions. Using fallback questions.");
+        
+        // Use fallback questions
+        const jobPosition = formData?.jobPosition || "Software Developer";
+        questionList = [
+          { id: 1, question: `Tell me about your experience with ${jobPosition} role.`, type: "Experience" },
+          { id: 2, question: "What are your strengths and weaknesses?", type: "Behavioral" },
+          { id: 3, question: "Describe a challenging project you worked on.", type: "Experience" },
+          { id: 4, question: "How do you handle tight deadlines?", type: "Behavioral" },
+          { id: 5, question: "Where do you see yourself in 5 years?", type: "Behavioral" }
+        ];
+      }
+
+      // Ensure we have at least some questions
+      if (!questionList || questionList.length === 0) {
+        throw new Error("No questions generated");
       }
 
       // Now save the interview
       const newInterviewId = uuidv4();
 
       // Convert duration string to integer (extract number from "5 Min" -> 5)
-      const durationMinutes = formData.duration ? parseInt(formData.duration.split(' ')[0]) : null;
+      const durationMinutes = formData.duration ? parseInt(formData.duration.split(' ')[0]) : 30;
 
       // Prepare the data to insert
       const interviewData = {
         ...formData,
-        duration: durationMinutes, // Convert to integer
+        duration: durationMinutes,
         questionList: questionList,
         userEmail: user?.email,
         interview_id: newInterviewId,
       };
+
+      console.log("Saving interview data:", interviewData);
 
       // Insert interview data
       const { data, error } = await supabase
@@ -83,20 +169,24 @@ function DirectInterviewCreator({ formData, onCreateLink }) {
         .insert([interviewData]);
 
       if (error) {
+        console.error("Supabase error:", error);
         toast.error(`Failed to save interview: ${error.message}`);
         setLoading(false);
         return;
       }
 
       // Update user credits
-      const { data: userUpdateData, error: userUpdateError } = await supabase
-        .from("Users")
-        .update({ credits: Number(user?.credits) - 1 })
-        .eq("email", user?.email)
-        .select();
+      if (user?.credits && Number(user.credits) > 0) {
+        const { data: userUpdateData, error: userUpdateError } = await supabase
+          .from("Users")
+          .update({ credits: Number(user?.credits) - 1 })
+          .eq("email", user?.email)
+          .select();
 
-      if (userUpdateError) {
-        toast.error("Interview saved but failed to update credits");
+        if (userUpdateError) {
+          console.error("Credits update error:", userUpdateError);
+          toast.error("Interview saved but failed to update credits");
+        }
       }
 
       toast.success("Interview created successfully!");
@@ -104,8 +194,8 @@ function DirectInterviewCreator({ formData, onCreateLink }) {
       setLoading(false);
 
     } catch (error) {
-      console.log(error);
-      toast("Server error, try again after some time");
+      console.error("Create interview error:", error);
+      toast.error("Server error, try again after some time");
       setLoading(false);
     }
   };

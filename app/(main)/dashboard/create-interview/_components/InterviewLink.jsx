@@ -64,12 +64,12 @@ function InterviewLink({ interview_id, formData }) {
       {/* Success header */}
       <div className="text-center space-y-4">
         <div className="flex justify-center">
-          <div className="flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30">
+          <div className="flex items-center justify-center h-16 w-16 rounded-full">
             <Image
               src="/check.png"
               alt="Success checkmark"
-              width={32}
-              height={32}
+              width={45}
+              height={45}
               className="object-contain"
             />
           </div>
