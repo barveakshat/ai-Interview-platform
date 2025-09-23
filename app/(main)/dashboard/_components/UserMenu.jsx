@@ -28,6 +28,7 @@ import {
 export default function UserMenu() {
   const { user, setUser } = useUser();
   const router = useRouter();
+  const [imageError, setImageError] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -52,11 +53,12 @@ export default function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Image
-          src={user.picture}
+          src={imageError || !user.picture ? "/default-avatar-large.svg" : user.picture}
           alt={user.name}
-          width={40}
-          height={40}
-          className="rounded-full cursor-pointer"
+          width={50}
+          height={50}
+          className="rounded-full cursor-pointer hover:scale-105 transition-transform duration-200"
+          onError={() => setImageError(true)}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
