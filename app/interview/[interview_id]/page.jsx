@@ -62,70 +62,108 @@ function Interview() {
   };
 
   return (
-    <div className="px-10 md:px-28 lg:px-48 xl:px-64 mt-10">
-      <div className="flex flex-col items-center justify-center border rounded-xl bg-gray-100 p-7 shadow-xl gap-2 md:px-28 lg:px-32 xl:px-52 mb-20">
-        <div className="flex flex-row items-center space-x-1 p-4">
-          <Image
-            src="/gurujiLogoSm.png"
-            alt="logo small"
-            width={40}
-            height={40}
-          />
-          <div className="text-2xl text-green-700">PrepTrack</div>
-        </div>
-        <Image
-          src="/joinInterview.png"
-          alt="joinInterview"
-          width={600}
-          height={200}
-          className="rounded-xl"
-        />
-        <h2 className="font-bold text-lg">{interviewData?.jobPosition}</h2>
-        <h2 className="flex gap-1.5 items-center text-gray-500 mt-4">
-          <Clock />
-          {interviewData?.duration}
-        </h2>
-        <div className="w-full mt-4">
-          <h2>Enter your full name</h2>
-          <Input
-            placeholder="eg. Anoop Lanjekar"
-            className="bg-white"
-            onChange={(event) => setUserName(event.target.value)}
-          />
-        </div>
-        <div className="w-full mt-2">
-          <h2>Enter your email</h2>
-          <Input
-            placeholder="eg. anoop@gmail.com"
-            className="bg-white"
-            onChange={(event) => setUserEmail(event.target.value)}
-          />
-        </div>
-
-        <div className="p-4 flex gap-4 rounded-lg bg-green-200 mt-4 w-full shadow-lg">
-          <Info className="text-primary" />
-          <div>
-            <h2 className="font-bold text-primary">Before you begin</h2>
-            <ul>
-              <li className="text-primary text-sm">
-                - Ensure you have stable internet connection.
-              </li>
-              <li className="text-primary text-sm">
-                - Test your camera and microphone.
-              </li>
-              <li className="text-primary text-sm">
-                - Find a quite place for interview.
-              </li>
-            </ul>
+    <div className="min-h-screen bg-background px-4 py-8 md:px-8 lg:px-16 xl:px-32">
+      <div className="mx-auto max-w-2xl">
+        <div className="relative overflow-hidden backdrop-blur-sm bg-card border border-border rounded-2xl p-8 shadow-lg">
+          {/* Interview Image */}
+          <div className="flex flex-col items-center space-y-6 mb-8">
+            <div className="relative">
+              <Image
+                src="/joinInterview.png"
+                alt="joinInterview"
+                width={500}
+                height={200}
+                className="rounded-xl border border-border/50"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent rounded-xl" />
+            </div>
           </div>
+
+          {/* Job Position */}
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
+              {interviewData?.jobPosition || "Loading..."} Interview
+            </h1>
+            <div className="flex items-center justify-center gap-2 text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span>{interviewData?.duration} minutes</span>
+            </div>
+          </div>
+
+          {/* Form Section */}
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Full Name
+              </label>
+              <Input
+                placeholder="e.g. Anoop Lanjekar"
+                className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                onChange={(event) => setUserName(event.target.value)}
+                value={userName || ""}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Email Address
+              </label>
+              <Input
+                type="email"
+                placeholder="e.g. anoop@gmail.com"
+                className="bg-input border-border text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                onChange={(event) => setUserEmail(event.target.value)}
+                value={userEmail || ""}
+              />
+            </div>
+          </div>
+
+          {/* Info Section */}
+          <div className="mt-8 p-4 bg-primary/5 border border-primary/20 rounded-xl">
+            <div className="flex gap-3">
+              <Info className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+              <div className="space-y-2">
+                <h3 className="font-semibold text-foreground">Before you begin</h3>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>Ensure you have a stable internet connection</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>Test your camera and microphone beforehand</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>Find a quiet, well-lit space for the interview</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Join Button */}
+          <Button
+            className="w-full mt-8 h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || !userName?.trim() || !userEmail?.trim()}
+            onClick={() => onJoinInterview()}
+          >
+            {loading ? (
+              <>
+                <Loader2Icon className="h-4 w-4 mr-2 animate-spin" />
+                Joining Interview...
+              </>
+            ) : (
+              <>
+                <VideoIcon className="h-4 w-4 mr-2" />
+                Join Interview
+              </>
+            )}
+          </Button>
+
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none rounded-2xl" />
         </div>
-        <Button
-          className="w-full mt-4 "
-          disabled={loading || !userName}
-          onClick={() => onJoinInterview()}>
-          <VideoIcon /> {loading && <Loader2Icon />}
-          Join Interview
-        </Button>
       </div>
     </div>
   );
