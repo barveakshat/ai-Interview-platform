@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 import FormContainer from "./_components/FormContainer";
 import QuestionList from "./_components/QuestionList";
+import DirectInterviewCreator from "./_components/DirectInterviewCreator";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import InterviewLink from "./_components/InterviewLink";
@@ -59,7 +60,7 @@ function CreateInterview() {
             GoToNext={() => onGoToNext()}
           />
         ) : step == 2 ? (
-          <QuestionList
+          <DirectInterviewCreator
             formData={formData}
             onCreateLink={(interview_id) => onCreateLink(interview_id)}
           />

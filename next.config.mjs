@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable standalone output for Docker
-  output: "standalone",
+  // Temporarily disable standalone output to avoid Windows symlink issues
+  // output: "standalone",
 
   eslint: {
     ignoreDuringBuilds: true,
