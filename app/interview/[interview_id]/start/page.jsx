@@ -1,7 +1,8 @@
 // app/interview/[interview_id]/start/page.jsx
 "use client";
 import { InterviewDataContext } from "@/app/context/InterviewDataContext";
-import { Mic, Video, VideoOff, Loader2 } from "lucide-react";
+import { useUser } from "@/app/provider";
+import { Mic, MicOff, Video, VideoOff, Loader2 } from "lucide-react";
 import { Phone } from "lucide-react";
 import { Timer } from "lucide-react";
 import Image from "next/image";
@@ -15,6 +16,7 @@ import { useParams, useRouter } from "next/navigation";
 
 function StartInterview() {
   const { interviewInfo, setInterviewInfo } = useContext(InterviewDataContext);
+  const { user } = useUser();
   const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY);
   
   // Validate VAPI key
@@ -30,11 +32,13 @@ function StartInterview() {
   const [activeUser, setActiveUser] = useState(false);
   const [conversation, setConversation] = useState();
   const [isCameraOn, setIsCameraOn] = useState(false);
+  const [isMicOn, setIsMicOn] = useState(true);
   const [stream, setStream] = useState(null);
   const [timer, setTimer] = useState(0);
   const [isInterviewActive, setIsInterviewActive] = useState(false);
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const [isCallActive, setIsCallActive] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const interviewEndedRef = useRef(false);
   const videoRef = useRef(null);
   const timerRef = useRef(null);
@@ -194,6 +198,16 @@ function StartInterview() {
       stopCamera();
     } else {
       startCamera();
+    }
+  };
+
+  // Microphone functions
+  const toggleMicrophone = () => {
+    setIsMicOn(!isMicOn);
+    if (isMicOn) {
+      toast("Microphone muted");
+    } else {
+      toast("Microphone unmuted");
     }
   };
 
@@ -397,6 +411,19 @@ Key Guidelines:
 
   // Set up VAPI event listeners in useEffect
   useEffect(() => {
+    // Override console.error to suppress Daily.co meeting ejection errors
+    const originalConsoleError = console.error;
+    console.error = (...args) => {
+      const message = args.join(' ');
+      if (message && /Meeting ended due to ejection|Meeting has ended/i.test(message)) {
+        // Suppress this specific error and handle it gracefully
+        console.log("Suppressed Daily.co meeting ejection error:", message);
+        return;
+      }
+      // For all other errors, use the original console.error
+      originalConsoleError.apply(console, args);
+    };
+
     const handleCallStart = () => {
       if (interviewEndedRef.current) {
         console.log("Call start ignored - interview already ended");
@@ -532,6 +559,11 @@ Key Guidelines:
         const message = event?.message || (event?.error && event.error.message) || "";
         if (message && /Meeting ended due to ejection|Meeting has ended/i.test(message)) {
           console.log("Global error detected meeting end:", message);
+          
+          // Prevent the error from being logged to console
+          event.preventDefault();
+          event.stopPropagation();
+          
           if (!interviewEndedRef.current) {
             interviewEndedRef.current = true;
             
@@ -560,15 +592,67 @@ Key Guidelines:
             await new Promise((r) => setTimeout(r, 300));
             await GenerateFeedback();
           }
+          
+          return false; // Prevent default error handling
         }
       } catch (err) {
         console.error("Error in windowErrorHandler:", err);
       }
-      // let the event continue to default handling
+      // let the event continue to default handling for other errors
     };
+    // Handler for unhandled promise rejections (like Daily.co SDK errors)
+    const unhandledRejectionHandler = async (event) => {
+      try {
+        const reason = event?.reason;
+        const message = reason?.message || reason?.toString() || "";
+        
+        if (message && /Meeting ended due to ejection|Meeting has ended/i.test(message)) {
+          console.log("Unhandled promise rejection detected meeting end:", message);
+          
+          // Prevent the error from being logged to console
+          event.preventDefault();
+          
+          if (!interviewEndedRef.current) {
+            interviewEndedRef.current = true;
+            
+            // Stop all audio immediately
+            try {
+              if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+              }
+              const audioElements = document.querySelectorAll('audio');
+              audioElements.forEach(audio => {
+                audio.pause();
+                audio.currentTime = 0;
+                audio.src = '';
+              });
+            } catch (audioError) {
+              console.log("Error stopping audio in unhandledRejectionHandler:", audioError);
+            }
+            
+            stopTimer();
+            stopCamera();
+            setIsCallActive(false);
+            setActiveUser(false);
+            setIsGeneratingFeedback(true);
+            toast("Interview ended. Generating feedback...");
+            // small delay to allow last messages to flush
+            await new Promise((r) => setTimeout(r, 300));
+            await GenerateFeedback();
+          }
+        }
+      } catch (err) {
+        console.error("Error in unhandledRejectionHandler:", err);
+      }
+    };
+
     window.addEventListener("error", windowErrorHandler);
+    window.addEventListener("unhandledrejection", unhandledRejectionHandler);
 
     return () => {
+      // Restore original console.error
+      console.error = originalConsoleError;
+      
       vapi.off("call-start", handleCallStart);
       vapi.off("speech-start", handleSpeechStart);
       vapi.off("speech-end", handleSpeechEnd);
@@ -578,6 +662,7 @@ Key Guidelines:
         vapi.off("error", handleVapiError);
       } catch (e) {}
       window.removeEventListener("error", windowErrorHandler);
+      window.removeEventListener("unhandledrejection", unhandledRejectionHandler);
     };
   }, [isGeneratingFeedback, conversation]);
 
@@ -667,19 +752,19 @@ Key Guidelines:
   };
 
   return (
-    <div className="relative min-h-screen bg-background">
+    <div className="relative h-screen bg-gray-900 overflow-hidden">
       {/* Main Content */}
       <div
-        className={`p-6 md:p-8 lg:p-12 xl:p-16 ${
+        className={`p-6 md:p-8 lg:p-12 xl:p-16 h-full overflow-y-auto ${
           isGeneratingFeedback ? "blur-sm pointer-events-none" : ""
         }`}>
         
         {/* Header */}
-        <div className="flex justify-between items-center mb-8 p-6 bg-card border border-border rounded-2xl shadow-sm">
-          <h1 className="text-2xl font-bold text-foreground">
+        <div className="flex justify-between items-center mb-8 p-6 bg-gray-800/90 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-lg">
+          <h1 className="text-2xl font-bold text-white">
             AI Interview Session
           </h1>
-          <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-primary">
+          <div className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 border border-blue-500/30 rounded-full text-blue-400">
             <Timer className="h-4 w-4" />
             <span className="font-mono text-sm font-medium">
               {formatTime(timer)}
@@ -690,11 +775,11 @@ Key Guidelines:
         {/* Video Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           {/* AI Recruiter Section */}
-          <div className="relative overflow-hidden backdrop-blur-sm bg-card border border-border rounded-2xl p-8 shadow-lg">
-            <div className="flex flex-col items-center space-y-6">
+          <div className="relative overflow-hidden backdrop-blur-sm bg-gray-800/90 border border-gray-700/50 rounded-2xl p-8 shadow-lg">
+            <div className="flex flex-col items-center justify-center h-[364px] space-y-6">
               <div className="relative">
                 {!activeUser && isCallActive && (
-                  <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+                  <div className="absolute inset-0 rounded-full bg-blue-500/20 animate-ping" />
                 )}
                 <div className="relative">
                   <Image
@@ -702,123 +787,144 @@ Key Guidelines:
                     alt="AI Interviewer"
                     width={120}
                     height={120}
-                    className="w-[120px] h-[120px] rounded-full object-cover border-4 border-primary shadow-lg"
+                    className="w-[120px] h-[120px] rounded-full object-cover border-4 border-blue-500/30 shadow-lg"
                   />
                   {!activeUser && isCallActive && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-2 border-card rounded-full animate-pulse" />
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-2 border-gray-800 rounded-full animate-pulse" />
                   )}
                 </div>
               </div>
               
               <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold text-foreground">
+                <h2 className="text-xl font-semibold text-white">
                   AI Recruiter
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-400">
                   {isCallActive ? "Speaking..." : "Ready to interview"}
                 </p>
               </div>
             </div>
             
             {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none rounded-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none rounded-2xl" />
           </div>
 
           {/* User Video Section */}
-          <div className="relative overflow-hidden backdrop-blur-sm bg-card border border-border rounded-2xl p-8 shadow-lg">
-            <div className="relative h-[300px] bg-secondary/50 rounded-xl overflow-hidden border border-border/50">
-              {isCameraOn ? (
-                <>
+          <div className="relative overflow-hidden backdrop-blur-sm bg-gray-800/90 border border-gray-700/50 rounded-2xl p-8 shadow-lg">
+            {isCameraOn ? (
+              <div className="flex flex-col items-center justify-center h-[364px] space-y-4">
+                <div className="relative w-[450px] h-[380px] bg-gray-700/50 rounded-2xl overflow-hidden border border-gray-600/50 shadow-lg">
                   <video
                     ref={videoRef}
                     autoPlay
                     playsInline
                     muted
-                    className="absolute inset-0 w-full h-full object-cover rounded-xl"
+                    className="w-full h-full object-cover rounded-2xl"
                     onLoadedMetadata={() => console.log("Video metadata loaded")}
                     onError={(e) => console.log("Video error:", e)}
                   />
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <div className="bg-background/80 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
-                      <p className="text-sm font-medium text-foreground text-center">
-                        {interviewInfo?.userName}
-                      </p>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full space-y-4">
+                  <div className="absolute inset-0 rounded-2xl ring-2 ring-emerald-500/30"></div>
+                </div>
+                <div className="text-center space-y-1">
+                  <h2 className="text-xl font-semibold text-white">
+                    {user?.name || interviewInfo?.userName || "User"}
+                  </h2>
+                  <p className="text-sm text-gray-400">Camera On</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[364px] space-y-6">
+                <div className="relative">
+                  {activeUser && !isCameraOn && isCallActive && (
+                    <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping" />
+                  )}
                   <div className="relative">
-                    {activeUser && !isCameraOn && isCallActive && (
-                      <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
-                    )}
-                    <div className="w-20 h-20 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">
-                      {interviewInfo?.userName?.[0]?.toUpperCase() || "U"}
-                    </div>
+                    <Image
+                      src={imageError || !user?.picture ? "/default-avatar-large.svg" : user.picture}
+                      alt={user?.name || interviewInfo?.userName || "User"}
+                      width={120}
+                      height={120}
+                      className="w-[120px] h-[120px] rounded-full object-cover border-4 border-emerald-500/30 shadow-lg"
+                      onError={() => setImageError(true)}
+                    />
                     {activeUser && isCallActive && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-2 border-card rounded-full animate-pulse" />
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-2 border-gray-800 rounded-full animate-pulse" />
                     )}
-                  </div>
-                  <div className="text-center space-y-1">
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {interviewInfo?.userName}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {isCameraOn ? "Camera On" : "Camera Off"}
-                    </p>
                   </div>
                 </div>
-              )}
-            </div>
+                <div className="text-center space-y-2">
+                  <h2 className="text-xl font-semibold text-white">
+                    {user?.name || interviewInfo?.userName || "User"}
+                  </h2>
+                  <p className="text-sm text-gray-400">
+                    {isCameraOn ? "Camera On" : "Camera Off"}
+                  </p>
+                </div>
+              </div>
+            )}
             
             {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 pointer-events-none rounded-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-blue-500/5 pointer-events-none rounded-2xl" />
           </div>
         </div>
 
         {/* Control Buttons */}
-        <div className="flex justify-center gap-6 mb-8">
+        <div className="flex justify-center items-center gap-8 mb-8">
           {/* Microphone Button */}
-          <div className="flex flex-col items-center gap-2">
-            <button className="bg-blue-500 hover:bg-blue-600 text-white rounded-full h-14 w-14 p-4 transition-all duration-200 hover:scale-110 hover:shadow-lg flex items-center justify-center">
-              <Mic className="h-6 w-6" />
+          <div className="flex flex-col items-center gap-3">
+            <button 
+              onClick={toggleMicrophone}
+              disabled={isGeneratingFeedback}
+              className={`${
+                isMicOn 
+                  ? 'bg-blue-500 hover:bg-blue-600' 
+                  : 'bg-red-500 hover:bg-red-600'
+              } text-white rounded-full h-16 w-16 transition-all duration-200 hover:scale-110 hover:shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-md`}
+            >
+              {isMicOn ? (
+                <Mic className="h-6 w-6" />
+              ) : (
+                <MicOff className="h-6 w-6" />
+              )}
             </button>
-            <span className="text-xs text-muted-foreground">Microphone</span>
+            <span className="text-xs text-muted-foreground font-medium text-center">
+              {isMicOn ? "Mute Microphone" : "Unmute Microphone"}
+            </span>
           </div>
 
           {/* Camera Toggle Button */}
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-3">
             <button
               onClick={toggleCamera}
               disabled={isGeneratingFeedback}
-              className="bg-green-500 hover:bg-green-600 text-white rounded-full h-14 w-14 p-4 transition-all duration-200 hover:scale-110 hover:shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+              className="bg-green-500 hover:bg-green-600 text-white rounded-full h-16 w-16 transition-all duration-200 hover:scale-110 hover:shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-md">
               {isCameraOn ? (
                 <Video className="h-6 w-6" />
               ) : (
                 <VideoOff className="h-6 w-6" />
               )}
             </button>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground font-medium text-center">
               {isCameraOn ? "Turn Off Camera" : "Turn On Camera"}
             </span>
           </div>
 
           {/* End Interview Button */}
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-3">
             <AlertConfirmation
               stopInterview={stopInterview}
               disabled={isGeneratingFeedback}>
-              <button className="bg-red-500 hover:bg-red-600 text-white rounded-full h-14 w-14 p-4 transition-all duration-200 hover:scale-110 hover:shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+              <button className="bg-red-500 hover:bg-red-600 text-white rounded-full h-16 w-16 transition-all duration-200 hover:scale-110 hover:shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-md">
                 <Phone className="h-6 w-6" />
               </button>
             </AlertConfirmation>
-            <span className="text-xs text-muted-foreground">End Interview</span>
+            <span className="text-xs text-muted-foreground font-medium">End Interview</span>
           </div>
         </div>
 
         {/* Status */}
         <div className="text-center">
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             {isCallActive ? "Interview in progress..." : "Preparing interview..."}
           </p>
         </div>

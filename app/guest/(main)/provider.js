@@ -5,7 +5,7 @@ import { GuestAppSidebar } from "./_components/GuestAppSidebar";
 
 function GuestDashboardProvider({ children }) {
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <SidebarProvider>
         <GuestAppSidebar />
         <div className="w-full">
@@ -16,7 +16,7 @@ function GuestDashboardProvider({ children }) {
           {children}
         </div>
       </SidebarProvider>
-    </>
+    </div>
   );
 }
 

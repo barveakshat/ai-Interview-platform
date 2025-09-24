@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/services/supabaseClient";
+import { useUser } from "@/app/provider";
 import { 
   CheckCircle, 
   Trophy, 
@@ -28,9 +29,11 @@ import { toast } from "sonner";
 function InterviewCompleted() {
   const router = useRouter();
   const { interview_id } = useParams();
+  const { user } = useUser();
   const [feedback, setFeedback] = useState(null);
   const [interviewData, setInterviewData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     fetchFeedbackData();
@@ -93,33 +96,33 @@ function InterviewCompleted() {
   };
 
   const getRatingColor = (rating) => {
-    if (rating >= 8) return "text-green-600 bg-green-100";
-    if (rating >= 6) return "text-yellow-600 bg-yellow-100";
-    if (rating >= 4) return "text-orange-600 bg-orange-100";
-    return "text-red-600 bg-red-100";
+    if (rating >= 8) return "text-emerald-400 bg-emerald-500/20";
+    if (rating >= 6) return "text-yellow-400 bg-yellow-500/20";
+    if (rating >= 4) return "text-orange-400 bg-orange-500/20";
+    return "text-red-400 bg-red-500/20";
   };
 
   const getOverallPerformance = (rating) => {
-    if (rating >= 8) return { label: "Excellent", icon: Trophy, color: "text-green-600" };
-    if (rating >= 6) return { label: "Good", icon: TrendingUp, color: "text-yellow-600" };
-    if (rating >= 4) return { label: "Fair", icon: Target, color: "text-orange-600" };
-    return { label: "Needs Improvement", icon: Lightbulb, color: "text-red-600" };
+    if (rating >= 8) return { label: "Excellent", icon: Trophy, color: "text-emerald-400" };
+    if (rating >= 6) return { label: "Good", icon: TrendingUp, color: "text-yellow-400" };
+    if (rating >= 4) return { label: "Fair", icon: Target, color: "text-orange-400" };
+    return { label: "Needs Improvement", icon: Lightbulb, color: "text-red-400" };
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="h-screen bg-gray-900 flex items-center justify-center overflow-hidden">
         <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading your results...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-400 mx-auto"></div>
+          <p className="text-gray-300">Loading your results...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="h-screen bg-gray-900 overflow-hidden">
+      <div className="container mx-auto px-4 py-8 max-w-6xl h-full overflow-y-auto">
         {/* Success Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -127,280 +130,198 @@ function InterviewCompleted() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <div className="relative inline-flex items-center justify-center w-24 h-24 bg-green-100 rounded-full mb-6">
-            <CheckCircle className="w-12 h-12 text-green-600" />
-            <div className="absolute inset-0 bg-green-400 rounded-full animate-ping opacity-20"></div>
+          <div className="relative inline-flex items-center justify-center w-24 h-24 bg-emerald-500/20 backdrop-blur-sm rounded-full mb-6 border border-emerald-500/30">
+            <CheckCircle className="w-12 h-12 text-emerald-400" />
+            <div className="absolute inset-0 bg-emerald-400/20 rounded-full animate-ping"></div>
           </div>
           
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-100 to-gray-300 mb-4">
             Interview Completed! 🎉
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             Congratulations on completing your AI interview session. Your performance has been analyzed and feedback is ready.
           </p>
         </motion.div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          {/* Left Column - Main Results */}
-          <div className="lg:col-span-2 space-y-6">
+        {/* Interview Summary - Full Width */}
+        {interviewData && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="bg-gray-800/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-700/50 mb-8"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-500/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-blue-500/30">
+                <User className="w-5 h-5 text-blue-400" />
+              </div>
+              <h2 className="text-xl font-semibold text-white">Interview Summary</h2>
+            </div>
             
-            {/* Interview Summary Card */}
-            {interviewData && (
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <User className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <h2 className="text-xl font-semibold text-gray-900">Interview Summary</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gray-700/50 backdrop-blur-sm rounded-lg p-4 border border-gray-600/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Award className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-400">Position</span>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Award className="w-4 h-4 text-gray-600" />
-                      <span className="text-sm text-gray-600">Position</span>
-                    </div>
-                    <p className="font-semibold text-gray-900">{interviewData.jobPosition}</p>
-                  </div>
-                  
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Clock className="w-4 h-4 text-gray-600" />
-                      <span className="text-sm text-gray-600">Duration</span>
-                    </div>
-                    <p className="font-semibold text-gray-900">{interviewData.duration} minutes</p>
-                  </div>
-                  
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Target className="w-4 h-4 text-gray-600" />
-                      <span className="text-sm text-gray-600">Type</span>
-                    </div>
-                    <p className="font-semibold text-gray-900 capitalize">{interviewData.type}</p>
-                  </div>
+                <p className="font-semibold text-white">{interviewData.jobPosition}</p>
+              </div>
+              
+              <div className="bg-gray-700/50 backdrop-blur-sm rounded-lg p-4 border border-gray-600/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-400">Duration</span>
                 </div>
-              </motion.div>
-            )}
-
-            {/* Performance Results */}
-            {feedback?.feedback ? (
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100"
-              >
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <h2 className="text-xl font-semibold text-gray-900">Performance Analysis</h2>
+                <p className="font-semibold text-white">{interviewData.duration} minutes</p>
+              </div>
+              
+              <div className="bg-gray-700/50 backdrop-blur-sm rounded-lg p-4 border border-gray-600/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Target className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-400">Type</span>
                 </div>
+                <p className="font-semibold text-white capitalize">
+                  {Array.isArray(interviewData.type) 
+                    ? interviewData.type.join(', ') 
+                    : interviewData.type}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
-                {/* Overall Score */}
-                {feedback.feedback.rating?.overall && (
-                  <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Overall Performance</p>
-                        <div className="flex items-center gap-2">
-                          {(() => {
-                            const performance = getOverallPerformance(feedback.feedback.rating.overall);
-                            const Icon = performance.icon;
-                            return (
-                              <>
-                                <Icon className={`w-5 h-5 ${performance.color}`} />
-                                <span className={`text-lg font-semibold ${performance.color}`}>
-                                  {performance.label}
-                                </span>
-                              </>
-                            );
-                          })()}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className={`text-3xl font-bold ${getRatingColor(feedback.feedback.rating.overall).split(' ')[0]}`}>
-                          {feedback.feedback.rating.overall}/10
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Skill Ratings */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  {feedback.feedback.rating && Object.entries(feedback.feedback.rating).map(([skill, rating]) => {
-                    if (skill === 'overall') return null;
-                    
-                    return (
-                      <div key={skill} className="text-center p-4 bg-gray-50 rounded-lg">
-                        <div className={`w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center text-lg font-bold ${getRatingColor(rating)}`}>
-                          {rating}
-                        </div>
-                        <p className="text-sm font-medium text-gray-900 capitalize">
-                          {skill.replace(/([A-Z])/g, ' $1').trim()}
-                        </p>
-                        <div className="flex justify-center mt-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star 
-                              key={i} 
-                              className={`w-3 h-3 ${i < Math.round(rating/2) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Summary */}
-                {feedback.feedback.summary && (
-                  <div className="bg-blue-50 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <MessageSquare className="w-5 h-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-2">Interview Summary</h3>
-                        <p className="text-gray-700 leading-relaxed">{feedback.feedback.summary}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            ) : null}
-          </div>
-
-          {/* Right Column - Actions & Recommendations */}
-          <div className="space-y-6">
-            
-            {/* Recommendation Card */}
-            {feedback?.feedback?.Recommendation && (
-              <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className={`rounded-2xl p-6 shadow-lg border ${
+        {/* Main Content - Improved Layout */}
+        <div className="space-y-8">
+          {/* Recommendation Card - Full Width for Better Impact */}
+          {feedback?.feedback?.Recommendation && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className={`rounded-2xl p-8 shadow-2xl border backdrop-blur-sm max-w-2xl mx-auto ${
+                feedback.feedback.Recommendation === 'Yes' 
+                  ? 'bg-emerald-500/20 border-emerald-500/30' 
+                  : 'bg-orange-500/20 border-orange-500/30'
+              }`}
+            >
+              <div className="text-center mb-6">
+                <div className={`w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center backdrop-blur-sm border shadow-lg ${
                   feedback.feedback.Recommendation === 'Yes' 
-                    ? 'bg-green-50 border-green-200' 
-                    : 'bg-orange-50 border-orange-200'
-                }`}
-              >
-                <div className="text-center mb-4">
-                  <div className={`w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center ${
-                    feedback.feedback.Recommendation === 'Yes' 
-                      ? 'bg-green-100' 
-                      : 'bg-orange-100'
-                  }`}>
-                    {feedback.feedback.Recommendation === 'Yes' ? (
-                      <Trophy className="w-8 h-8 text-green-600" />
-                    ) : (
-                      <TrendingUp className="w-8 h-8 text-orange-600" />
-                    )}
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {feedback.feedback.Recommendation === 'Yes' ? 'Recommended for Hire!' : 'Keep Improving!'}
-                  </h3>
+                    ? 'bg-emerald-500/20 border-emerald-500/30 shadow-emerald-500/25' 
+                    : 'bg-orange-500/20 border-orange-500/30 shadow-orange-500/25'
+                }`}>
+                  {feedback.feedback.Recommendation === 'Yes' ? (
+                    <Trophy className="w-12 h-12 text-emerald-400" />
+                  ) : (
+                    <TrendingUp className="w-12 h-12 text-orange-400" />
+                  )}
                 </div>
-                
-                {feedback.feedback.RecommendationMsg && (
-                  <p className="text-gray-700 text-center text-sm leading-relaxed">
+                <h3 className="text-2xl font-bold text-white mb-3">
+                  {feedback.feedback.Recommendation === 'Yes' ? 'Excellent Performance!' : 'Keep Practicing!'}
+                </h3>
+                <p className="text-gray-400">
+                  {feedback.feedback.Recommendation === 'Yes' ? 'You\'re interview-ready!' : 'You\'re on the right track!'}
+                </p>
+              </div>
+              
+              {feedback.feedback.RecommendationMsg && (
+                <div className="bg-black/20 rounded-lg p-6 border border-white/10">
+                  <p className="text-gray-300 text-center leading-relaxed text-lg">
                     {feedback.feedback.RecommendationMsg}
                   </p>
-                )}
-              </motion.div>
-            )}
+                </div>
+              )}
+            </motion.div>
+          )}
 
-            {/* Action Buttons */}
+          {/* Two Column Layout for Action Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Enhanced What's Next Card - Takes 2 columns */}
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="lg:col-span-2 bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-700/50"
+            >
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
+                  <Sparkles className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-blue-400 mb-2">
+                  What's Next?
+                </h3>
+                <p className="text-gray-400 text-sm">Continue your interview journey</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Button 
+                  onClick={returnToDashboard}
+                  className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-emerald-500/25 transition-all duration-300 transform hover:scale-105 h-20 flex flex-col items-center justify-center gap-1"
+                  size="lg"
+                >
+                  <ArrowRight className="w-5 h-5" />
+                  <div className="font-semibold text-sm">Dashboard</div>
+                  <div className="text-xs opacity-90">Continue practicing</div>
+                </Button>
+                
+                <Button 
+                  onClick={viewAllInterviews}
+                  variant="outline"
+                  className="w-full border-2 border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:border-blue-400 transition-all duration-300 transform hover:scale-105 group h-20 flex flex-col items-center justify-center gap-1"
+                  size="lg"
+                >
+                  <Calendar className="w-5 h-5 group-hover:text-blue-300" />
+                  <div className="font-semibold text-sm">All Interviews</div>
+                  <div className="text-xs opacity-75">Track progress</div>
+                </Button>
+                
+                <Button 
+                  onClick={shareResults}
+                  variant="outline"
+                  className="w-full border-2 border-purple-500/50 text-purple-400 hover:bg-purple-500/10 hover:border-purple-400 transition-all duration-300 transform hover:scale-105 group h-20 flex flex-col items-center justify-center gap-1"
+                  size="lg"
+                >
+                  <Share2 className="w-5 h-5 group-hover:text-purple-300" />
+                  <div className="font-semibold text-sm">Share Results</div>
+                  <div className="text-xs opacity-75">Show achievements</div>
+                </Button>
+              </div>
+            </motion.div>
+
+            {/* Pro Tips Card - Takes 1 column */}
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
-              className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 space-y-4"
+              className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/30 h-fit"
             >
-              <h3 className="font-semibold text-gray-900 mb-4">What's Next?</h3>
-              
-              <Button 
-                onClick={returnToDashboard}
-                className="w-full bg-primary hover:bg-primary/90 text-white"
-                size="lg"
-              >
-                <ArrowRight className="w-4 h-4 mr-2" />
-                Return to Dashboard
-              </Button>
-              
-              <Button 
-                onClick={viewAllInterviews}
-                variant="outline"
-                className="w-full"
-                size="lg"
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                View All Interviews
-              </Button>
-              
-              <Button 
-                onClick={shareResults}
-                variant="outline"
-                className="w-full"
-                size="lg"
-              >
-                <Share2 className="w-4 h-4 mr-2" />
-                Share Results
-              </Button>
-            </motion.div>
-
-            {/* Tips Card */}
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6 border border-purple-100"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-5 h-5 text-purple-600" />
-                <h3 className="font-semibold text-gray-900">Pro Tips</h3>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                  <Lightbulb className="w-6 h-6 text-yellow-400" />
+                </div>
+                <h3 className="font-semibold text-white text-lg">Pro Tips</h3>
               </div>
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-2"></div>
-                  Practice more interviews to improve your confidence
+              <ul className="space-y-4 text-sm text-gray-300">
+                <li className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-emerald-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <span>Practice regularly to build confidence</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-2"></div>
-                  Review your feedback to identify areas for improvement
+                <li className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <span>Review feedback for improvement areas</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-2"></div>
-                  Prepare specific examples for behavioral questions
+                <li className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-purple-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <span>Use STAR method for behavioral questions</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <span>Research company and role thoroughly</span>
                 </li>
               </ul>
             </motion.div>
           </div>
         </div>
-
-        {/* Celebration Image */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.7 }}
-          className="text-center"
-        >
-          <div className="relative inline-block">
-            <Image
-              src="/gurujiInterviewCompleted.png"
-              alt="Interview Completed Celebration"
-              width={400}
-              height={200}
-              className="rounded-2xl shadow-lg"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
-          </div>
-        </motion.div>
       </div>
     </div>
   );
