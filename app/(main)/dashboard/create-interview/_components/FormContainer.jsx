@@ -126,7 +126,7 @@ function FormContainer({ onHandleInputChange, GoToNext }) {
           <Button
             onClick={() => GoToNext()}
             className="flex items-center gap-2 transition-all duration-200 hover:shadow-md cursor-pointer">
-            <span>Generate Questions</span>
+            <span>Get Interview Link</span>
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
