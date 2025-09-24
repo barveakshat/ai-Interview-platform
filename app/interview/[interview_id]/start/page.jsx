@@ -433,6 +433,15 @@ Key Guidelines:
       setIsCallActive(true);
       startTimer(); // Start timer when call starts
       toast("Interview Started...");
+      
+      // Show helpful reminder after 30 seconds if no conversation yet
+      setTimeout(() => {
+        if (!conversation && isCallActive && !interviewEndedRef.current) {
+          toast("💡 Remember to speak clearly when the AI asks questions to get meaningful feedback!", {
+            duration: 5000,
+          });
+        }
+      }, 30000);
     };    const handleSpeechStart = () => {
       if (interviewEndedRef.current) return;
       console.log("Assistant speech has started.");
@@ -670,10 +679,43 @@ Key Guidelines:
     console.log("GenerateFeedback called with conversation:", conversation);
 
     try {
-      // Check if conversation data exists
-      if (!conversation) {
-        console.error("No conversation data available");
-        toast.error("No conversation data to generate feedback");
+      // Check if conversation data exists and has meaningful content
+      if (!conversation || conversation.trim() === "" || conversation === "[]" || conversation === "{}") {
+        console.log("No meaningful conversation data available - user may not have spoken during interview");
+        
+        // Create a default feedback entry for silent interviews
+        const defaultFeedback = {
+          overall_score: "N/A",
+          overall_feedback: "No conversation data was recorded during this interview session. This could happen if the user didn't speak or if there were technical issues with audio recording.",
+          areas_for_improvement: ["Try speaking during the interview to get meaningful feedback", "Check microphone permissions and audio settings"],
+          strengths: [],
+          recommendations: ["Restart the interview and ensure your microphone is working", "Speak clearly when the AI interviewer asks questions"],
+          Recommendation: "No",
+          RecommendationMsg: "No conversation was recorded during this interview session. Please try again and make sure to speak when the AI interviewer asks questions. Check your microphone settings and ensure you have proper audio permissions enabled."
+        };
+
+        // Save the default feedback to Supabase
+        const { data, error } = await supabase
+          .from("interview-feedback")
+          .insert([
+            {
+              userName: interviewInfo?.userName,
+              userEmail: interviewInfo?.userEmail,
+              interview_id,
+              feedback: defaultFeedback,
+              recommended: false,
+            },
+          ])
+          .select();
+
+        if (error) {
+          console.error("Supabase insert error for default feedback:", error);
+          toast.error("Failed to save interview session");
+        } else {
+          console.log("Default feedback saved successfully:", data);
+          toast("Interview session saved. No conversation was recorded.");
+        }
+        
         router.push(`/interview/${interview_id}/completed`);
         return;
       }
@@ -923,10 +965,17 @@ Key Guidelines:
         </div>
 
         {/* Status */}
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <p className="text-muted-foreground text-sm">
             {isCallActive ? "Interview in progress..." : "Preparing interview..."}
           </p>
+          {isCallActive && activeUser && (
+            <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 max-w-md mx-auto">
+              <p className="text-blue-300 text-xs">
+                💡 The AI is waiting for your response. Please speak clearly to continue the interview and receive meaningful feedback.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
