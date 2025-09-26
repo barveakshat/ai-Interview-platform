@@ -97,9 +97,7 @@ Try avoiding asking questions where user has to code something (just ask for the
 `;
 
 export const FEEDBACK_PROMPT = `
-Interview Conversation:
 {{conversation}}
-
 Based on this Interview Conversation between assistant and user, 
 give me feedback for user interview. Give me rating out of 10 for technical Skills, 
 Communication, Problem Solving, Experience. Also give me summary in 3 lines 
@@ -126,7 +124,7 @@ Response format (valid JSON object):
 
 Return only valid JSON. Give the recommendation in only Yes or No.
 
-When you get absolutely no response from the user in the interview, don't generate a generic response give 0 rating to all aspects.  
+When you get abosolutely no response from the user in the interview, don't generate a generic response give 0 rating to all aspects.  
 For those interviews with very less response or no response from the user give recommendation as "No".
 For those interviews with very less response or no response from the user give summary as "No response from the user, need further evaluation".
 `;
