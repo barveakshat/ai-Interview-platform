@@ -487,12 +487,14 @@ Key Guidelines:
       if (!isGeneratingFeedback) {
         setIsGeneratingFeedback(true);
         toast("Interview ended. Generating feedback...");
-        // Wait for conversation to be set, up to 2 seconds
+        // Wait for conversation to be set, up to 5 seconds
         let waited = 0;
-        while (!conversation && waited < 2000) {
+        while (!conversation && waited < 5000) {
           await new Promise((res) => setTimeout(res, 200));
           waited += 200;
+          console.log(`Waiting for conversation data... ${waited}ms`);
         }
+        console.log("Final conversation state before feedback generation:", conversation);
         await GenerateFeedback();
       }
     };
@@ -527,8 +529,14 @@ Key Guidelines:
             setActiveUser(false);
             setIsGeneratingFeedback(true);
             toast("Interview ended. Generating feedback...");
-            // small delay to allow last messages to flush
-            await new Promise((r) => setTimeout(r, 300));
+            // Wait for conversation to be set, up to 5 seconds
+            let waited = 0;
+            while (!conversation && waited < 5000) {
+              await new Promise((res) => setTimeout(res, 200));
+              waited += 200;
+              console.log(`Waiting for conversation data (error handler)... ${waited}ms`);
+            }
+            console.log("Final conversation state before feedback generation (error handler):", conversation);
             await GenerateFeedback();
           }
           return;
@@ -542,11 +550,21 @@ Key Guidelines:
 
     const handleMessage = (message) => {
       if (interviewEndedRef.current) return;
-      console.log("Message: ", message);
+      console.log("Vapi Message received: ", message);
+      console.log("Message type:", typeof message);
+      console.log("Message keys:", Object.keys(message || {}));
+      
       if (message?.conversation) {
+        console.log("Raw conversation data:", message.conversation);
+        console.log("Conversation type:", typeof message.conversation);
+        console.log("Conversation length:", message.conversation?.length);
+        
         const ConvoString = JSON.stringify(message.conversation);
         console.log("Conversation String: ", ConvoString);
+        console.log("Setting conversation state...");
         setConversation(ConvoString);
+      } else {
+        console.log("No conversation data in message");
       }
     };
 
@@ -597,8 +615,14 @@ Key Guidelines:
             setActiveUser(false);
             setIsGeneratingFeedback(true);
             toast("Interview ended. Generating feedback...");
-            // small delay to allow last messages to flush
-            await new Promise((r) => setTimeout(r, 300));
+            // Wait for conversation to be set, up to 5 seconds
+            let waited = 0;
+            while (!conversation && waited < 5000) {
+              await new Promise((res) => setTimeout(res, 200));
+              waited += 200;
+              console.log(`Waiting for conversation data (window error handler)... ${waited}ms`);
+            }
+            console.log("Final conversation state before feedback generation (window error handler):", conversation);
             await GenerateFeedback();
           }
           
@@ -675,13 +699,59 @@ Key Guidelines:
     };
   }, [isGeneratingFeedback, conversation]);
 
+  // Debug function to test feedback generation with sample data
+  const testFeedbackGeneration = async () => {
+    console.log("Testing feedback generation with sample conversation...");
+    const sampleConversation = JSON.stringify([
+      {
+        role: "assistant",
+        content: "Hello! Can you tell me about your experience with JavaScript?"
+      },
+      {
+        role: "user", 
+        content: "I have 3 years of experience with JavaScript. I've worked with React, Node.js, and have built several web applications."
+      },
+      {
+        role: "assistant",
+        content: "That's great! Can you explain how you would handle asynchronous operations in JavaScript?"
+      },
+      {
+        role: "user",
+        content: "I use Promises and async/await. Promises help handle asynchronous operations, and async/await makes the code more readable."
+      }
+    ]);
+    
+    setConversation(sampleConversation);
+    await GenerateFeedback();
+  };
+
   const GenerateFeedback = async () => {
     console.log("GenerateFeedback called with conversation:", conversation);
+    console.log("Conversation type:", typeof conversation);
+    console.log("Conversation length:", conversation?.length);
 
     try {
       // Check if conversation data exists and has meaningful content
-      if (!conversation || conversation.trim() === "" || conversation === "[]" || conversation === "{}") {
+      console.log("Validating conversation data...");
+      console.log("Conversation value:", conversation);
+      console.log("Conversation type:", typeof conversation);
+      
+      // Parse conversation to check if it has meaningful content
+      let parsedConversation;
+      try {
+        parsedConversation = JSON.parse(conversation);
+        console.log("Parsed conversation:", parsedConversation);
+        console.log("Parsed conversation length:", parsedConversation?.length);
+      } catch (parseError) {
+        console.log("Failed to parse conversation:", parseError);
+        parsedConversation = null;
+      }
+
+      if (!conversation || conversation.trim() === "" || conversation === "[]" || conversation === "{}" || 
+          !parsedConversation || !Array.isArray(parsedConversation) || parsedConversation.length === 0) {
         console.log("No meaningful conversation data available - user may not have spoken during interview");
+        console.log("Conversation was:", conversation);
+        console.log("Parsed conversation was:", parsedConversation);
         
         // Create a default feedback entry for silent interviews
         const defaultFeedback = {
@@ -727,7 +797,8 @@ Key Guidelines:
       // 1️ Check HTTP status
       if (result.status !== 200) {
         console.error("AI provider error:", result.data);
-        toast.error("Could not generate feedback (AI service error)");
+        const errorMsg = result.data?.error || "AI service error";
+        toast.error(`Could not generate feedback: ${errorMsg}`);
         router.push(`/interview/${interview_id}/completed`);
         return;
       }
@@ -963,6 +1034,18 @@ Key Guidelines:
             <span className="text-xs text-muted-foreground font-medium">End Interview</span>
           </div>
         </div>
+
+        {/* Debug Button - Only visible in development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={testFeedbackGeneration}
+              disabled={isGeneratingFeedback}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+              🧪 Test Feedback Generation
+            </button>
+          </div>
+        )}
 
         {/* Status */}
         <div className="text-center space-y-2">
