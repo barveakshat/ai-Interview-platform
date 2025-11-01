@@ -2,10 +2,6 @@
 
 **PrepTrack** is an AI-powered interview platform that automates the creation, scheduling, and execution of technical interviews. Leveraging modern web technologies and AI/voice services, PrepTrack offers a seamless experience for recruiters and candidates alike.
 
-### 🔔 **Note**
-
-**PrepTrack** is still under active development. You might encounter some issues or ongoing UI changes. 💡 For bug reports or suggestions, please contact [anoop@anoopvl.pro](mailto:anoop@anoopvl.pro).
-
 ---
 
 ## 🚀 Tech Stack
@@ -229,34 +225,7 @@ docker-compose logs -f
 - Volume mounting for development
 - Environment variable management
 - Hot reload support in development mode
-
----
-
-## 📸 Screenshots
-
-> _For more screenshots checkout (`/screenshots`) folder_
-
-### Landing Page (screenshot)
-
-![Landing](/screenshots/gurujiLanding1.png)
-
-### Dashboard (screenshot)
-
-![Dashboard](/screenshots/gurujiDashboard1.png)
-
-### Create Interview (screenshots)
-
-![Create Interview](/screenshots/gurujiCreateInterview1.png)
-![Create Interview](/screenshots/gurujiCreateInterview4.png)
-
-### Live Interview (screenshot)
-
-![Live Interview](/screenshots/gurujiInterviewProcess1.png)
-
-### Feedback Page (screenshot)
-
-![Feedback](/screenshots/gurujiInterviewDetail2.png)
-
+  
 ---
 
 ## 📈 Deployment
@@ -365,29 +334,6 @@ docker stats
 
 ---
 
-## 🤝 Contributing
-
-Pull requests and issues are welcome. Open for enhancements and feature requests.
-
-### Development Setup for Contributors
-
-1. Fork the repository
-2. Clone your fork: `git clone https://github.com/yourusername/ai-Interview-platform.git`
-3. Create a feature branch: `git checkout -b feature/amazing-feature`
-4. Set up development environment:
-   - **Traditional:** Follow Option 1 in Installation & Setup
-   - **Docker:** Use `docker-compose up` for consistent environment
-5. Make your changes and test thoroughly
-6. Commit your changes: `git commit -m 'Add amazing feature'`
-7. Push to the branch: `git push origin feature/amazing-feature`
-8. Open a Pull Request
-
----
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
 ## 🙏 Acknowledgments
 
 - [Next.js](https://nextjs.org/) for the amazing React framework
@@ -396,6 +342,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Tailwind CSS](https://tailwindcss.com/) for styling
 - [ShadCN UI](https://ui.shadcn.com/) for beautiful components
 
----
 
-**Made with ❤️ by AnoopVL**
